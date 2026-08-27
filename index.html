@@ -56,6 +56,7 @@
         <div class="profile-dropdown" id="profileDropdown">
           <button type="button" id="themeMenuBtn">🎨 Themes</button>
           <button type="button" id="approvalMenuBtn">🔐 Create approval code</button>
+          <button type="button" id="remindCodeBtn">📧 Remind me my code</button>
           <button type="button" class="pd-signout" id="signoutBtn">Sign out</button>
         </div>
       </div>
@@ -213,7 +214,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js?v=1"></script>
-  <script src="auth.js?v=13"></script>
+  <script src="auth.js?v=14"></script>
   <script src="mystery-box.js?v=5"></script>
   <script src="approval.js?v=6"></script>
   <script src="themes.js?v=1"></script>
@@ -230,6 +231,7 @@
       const greet = document.getElementById('heroGreeting');
       const heroSub = document.getElementById('heroSub');
       const approvalMenuBtn = document.getElementById('approvalMenuBtn');
+      const remindCodeBtn = document.getElementById('remindCodeBtn');
       const themeMenuBtn = document.getElementById('themeMenuBtn');
 
       menu.style.display = '';
@@ -265,6 +267,35 @@
         e.stopPropagation();
         menu.classList.remove('open');
         if (typeof LEW.openApprovalSettings === 'function') LEW.openApprovalSettings();
+      });
+      remindCodeBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        menu.classList.remove('open');
+        chip.setAttribute('aria-expanded', 'false');
+        const toast = (msg) => {
+          if (typeof LEW.showToast === 'function') LEW.showToast(msg);
+        };
+        remindCodeBtn.disabled = true;
+        toast('Sending your approval code…');
+        let sent = { ok: false, reason: 'none' };
+        try {
+          sent = await LEW.remindApprovalCode();
+        } catch (err) {
+          console.error(err);
+        }
+        remindCodeBtn.disabled = false;
+        const dest = (sent && sent.email) || (LEW.getApprovalEmail && LEW.getApprovalEmail()) || (user && user.email) || '';
+        if (sent && sent.ok && sent.method === 'confirm') {
+          toast('Check your inbox to confirm the first email, then tap Remind me my code again.');
+        } else if (sent && sent.ok) {
+          toast('The approval code was emailed to ' + dest + '. Check inbox and spam.');
+        } else if (sent && sent.reason === 'none') {
+          toast('No approval code yet. Tap Create approval code first.');
+        } else if (sent && sent.reason === 'db-error') {
+          toast('Could not read the code from the database. Try again.');
+        } else {
+          toast('Could not email the approval code. Try again.');
+        }
       });
       themeMenuBtn.addEventListener('click', (e) => {
         e.stopPropagation();

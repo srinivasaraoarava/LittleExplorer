@@ -559,13 +559,15 @@ const LEW = (() => {
     return { ok: true, email: dest, created: false, changed: true };
   }
 
-  function approvalMailCopy(changed) {
+  function approvalMailCopy(changed, reminder) {
     const u = getCurrentUser();
     const name = (u && u.profile && u.profile.name) || (u && u.googleName) || "your explorer";
     const code = storedApprovalCode();
-    const subject = changed
-      ? "Your new Little Explorer approval code"
-      : "Your Little Explorer approval code";
+    const subject = reminder
+      ? "Your Little Explorer approval code reminder"
+      : changed
+        ? "Your new Little Explorer approval code"
+        : "Your Little Explorer approval code";
     const body =
       `Hi,\n\nThe parent approval code for ${name}'s Little Explorer World account is:\n\n${code}\n\n` +
       `This same code stays valid until you change it in the profile menu.\n` +
@@ -598,11 +600,11 @@ const LEW = (() => {
     return { ok: true, method: "formsubmit" };
   }
 
-  async function sendApprovalCodeEmail({ email, changed }) {
+  async function sendApprovalCodeEmail({ email, changed, reminder }) {
     const dest = String(email || "").trim() || getApprovalEmail();
     if (!validEmail(dest) || !storedApprovalCode()) return { ok: false, reason: "invalid" };
     saveProfile({ approvalEmail: dest });
-    const { name, code, subject, body } = approvalMailCopy(!!changed);
+    const { name, code, subject, body } = approvalMailCopy(!!changed, !!reminder);
     if (!code) return { ok: false, reason: "none" };
 
     if (isEmailConfigured() && typeof window !== "undefined" && window.emailjs) {
@@ -632,6 +634,33 @@ const LEW = (() => {
       console.error("Approval email failed", e);
       return { ok: false, reason: "send-error", email: dest };
     }
+  }
+
+  async function remindApprovalCode() {
+    const user = getCurrentUser();
+    if (!user || !user.email) return { ok: false, reason: "no-user" };
+    const dest = getApprovalEmail() || user.email;
+    if (!validEmail(dest)) return { ok: false, reason: "invalid-email" };
+
+    const db = typeof window !== "undefined" ? window.LEW_DB : null;
+    let code = storedApprovalCode();
+    if (db && db.getProfile && db.enabled()) {
+      try {
+        const remote = await db.getProfile(user.email);
+        if (remote && remote.approval_code) {
+          code = String(remote.approval_code).trim();
+          saveProfile({
+            approvalCode: code,
+            approvalEmail: remote.approval_email || dest
+          });
+        }
+      } catch (err) {
+        console.error("remind load failed", err);
+        if (!code) return { ok: false, reason: "db-error" };
+      }
+    }
+    if (!code) return { ok: false, reason: "none" };
+    return sendApprovalCodeEmail({ email: dest, changed: false, reminder: true });
   }
 
   async function blobToBase64(blob) {
@@ -830,6 +859,7 @@ const LEW = (() => {
     verifyApprovalCode,
     createApprovalCode,
     changeApprovalCode,
+    remindApprovalCode,
     sendApprovalCodeEmail,
     sendApprovedPictureEmail,
   };
