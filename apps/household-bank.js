@@ -1,4 +1,4 @@
-/* Household activities bank for Tiny Genius.
+/* Household activities bank for Make Pocket Money.
  *
  *   POOL_SIZE  : 1000 unique simple, kid-friendly household tasks
  *   TASKS_PER_DAY : 5

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=12" />
+  <link rel="stylesheet" href="styles.css?v=13" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E" />
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -28,11 +28,11 @@
       <form id="signinForm" class="profile-form signin-form" novalidate>
         <label class="field">
           <span class="label">Parent email</span>
-          <input type="email" id="signinEmail" placeholder="parent@email.com" required autocomplete="email" />
+          <input type="email" id="signinEmail" placeholder="parent@email.com" required autocomplete="email" inputmode="email" spellcheck="false" />
         </label>
         <label class="field">
-          <span class="label">Your name <span style="font-weight:600;color:#94a3b8;">(optional)</span></span>
-          <input type="text" id="signinName" placeholder="e.g. Aditi" maxlength="60" autocomplete="name" />
+          <span class="label">Your Kid's Name</span>
+          <input type="text" id="signinName" placeholder="e.g. Aditi" required maxlength="60" autocomplete="given-name" />
         </label>
         <p id="signinErr" class="err-msg" style="display:none;"></p>
         <button type="submit" class="save-btn" id="signinBtn">Sign In →</button>
@@ -65,7 +65,7 @@
 
       <form id="profileForm" class="profile-form" novalidate>
         <label class="field">
-          <span class="label">Your name</span>
+          <span class="label">Your Kid's Name</span>
           <input type="text" id="pName" placeholder="e.g. Aditi" required maxlength="30" autocomplete="off" />
         </label>
 
@@ -96,7 +96,7 @@
   </main>
 
   <script src="supabase-config.js?v=2"></script>
-  <script src="auth.js?v=15"></script>
+  <script src="auth.js?v=22"></script>
   <script src="themes.js?v=1"></script>
   <script>
     // ---------- helpers ----------
@@ -110,7 +110,11 @@
       for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i);
       return colors[Math.abs(hash) % colors.length];
     }
-    function validEmail(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
+    function validEmail(s) {
+      const email = String(s || '').trim();
+      if (!email || email.length > 254) return false;
+      return /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/.test(email);
+    }
 
     // ---------- views + routing ----------
     const signinView  = document.getElementById('signin-view');
@@ -192,7 +196,7 @@
       const submitBtn = e.target.querySelector('.save-btn');
       const originalLabel = submitBtn.textContent;
 
-      if (!name) { err.textContent = 'Please enter your name.'; err.style.display = ''; return; }
+      if (!name) { err.textContent = "Please enter your kid's name."; err.style.display = ''; return; }
       if (!genderEl) { err.textContent = 'Please pick an option for gender.'; err.style.display = ''; return; }
       if (!age || age < 3 || age > 15) { err.textContent = 'Please pick an age between 3 and 15.'; err.style.display = ''; return; }
       err.style.display = 'none';
@@ -295,14 +299,64 @@
 
     renderAccounts();
 
+    function showSigninError(msg, focusEl) {
+      signinErr.textContent = msg;
+      signinErr.style.display = '';
+      if (focusEl) {
+        focusEl.classList.add('field-invalid');
+        focusEl.focus();
+      }
+    }
+    function showSigninToast(message) {
+      let t = document.getElementById('lewToast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'lewToast';
+        t.className = 'lew-toast';
+        t.setAttribute('role', 'status');
+        document.body.appendChild(t);
+      }
+      t.textContent = message;
+      t.classList.add('show');
+      clearTimeout(showSigninToast._tm);
+      showSigninToast._tm = setTimeout(() => t.classList.remove('show'), 3200);
+    }
+    function flagInvalidEmail() {
+      signinErr.style.display = 'none';
+      signinEmail.classList.add('field-invalid');
+      signinEmail.focus();
+      showSigninToast('Please enter a valid parent email, like name@example.com.');
+    }
+    function clearSigninFieldError(el) {
+      el.classList.remove('field-invalid');
+      if (signinErr.style.display !== 'none') signinErr.style.display = 'none';
+    }
+
+    signinEmail.addEventListener('input', () => clearSigninFieldError(signinEmail));
+    signinName.addEventListener('input', () => clearSigninFieldError(signinName));
+    signinEmail.addEventListener('blur', () => {
+      const email = signinEmail.value.trim();
+      if (!email) return;
+      if (!validEmail(email)) flagInvalidEmail();
+    });
+
     signinForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const name  = signinName.value.trim();
       const email = signinEmail.value.trim();
+      signinEmail.classList.remove('field-invalid');
+      signinName.classList.remove('field-invalid');
+
+      if (!email) {
+        showSigninError('Please enter a parent email address.', signinEmail);
+        return;
+      }
       if (!validEmail(email)) {
-        signinErr.textContent = 'Please enter a valid parent email address.';
-        signinErr.style.display = '';
-        signinEmail.focus();
+        flagInvalidEmail();
+        return;
+      }
+      if (!name) {
+        showSigninError("Please enter your kid's name.", signinName);
         return;
       }
       signinErr.style.display = 'none';

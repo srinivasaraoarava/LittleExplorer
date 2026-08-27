@@ -68,7 +68,13 @@ const LEW = (() => {
       puzzle_plays: asMap(p.puzzlePlays),
       puzzle_recent: asMap(p.puzzleRecent),
       puzzle_mix_seed: p.puzzleMixSeed || 0,
-      puzzle_mix_index: p.puzzleMixIndex || 0
+      puzzle_mix_index: p.puzzleMixIndex || 0,
+      custom_missions: asList(p.customMissions),
+      custom_mission_cents: p.customMissionCents || 0,
+      custom_mission_log: asList(p.customMissionLog),
+      custom_missions_updated_at: p.customMissionsUpdatedAt || 0,
+      bank_deposits: asList(p.bankDeposits),
+      bank_updated_at: p.bankUpdatedAt || 0
     };
   }
 
@@ -95,8 +101,50 @@ const LEW = (() => {
       puzzlePlays: Object.keys(asMap(remote.puzzle_plays)).length ? asMap(remote.puzzle_plays) : asMap(lp.puzzlePlays),
       puzzleRecent: Object.keys(asMap(remote.puzzle_recent)).length ? asMap(remote.puzzle_recent) : asMap(lp.puzzleRecent),
       puzzleMixSeed: remote.puzzle_mix_seed || lp.puzzleMixSeed || 0,
-      puzzleMixIndex: remote.puzzle_mix_index || lp.puzzleMixIndex || 0
+      puzzleMixIndex: remote.puzzle_mix_index || lp.puzzleMixIndex || 0,
+      customMissions: pickCustomMissions(remote, lp),
+      customMissionLog: mergeCustomLog(lp.customMissionLog, remote.custom_mission_log),
+      customMissionCents: mergeCustomCents(lp, remote),
+      customMissionsUpdatedAt: Math.max(lp.customMissionsUpdatedAt || 0, remote.custom_missions_updated_at || 0),
+      bankDeposits: pickBankDeposits(remote, lp),
+      bankUpdatedAt: Math.max(lp.bankUpdatedAt || 0, remote.bank_updated_at || 0)
     };
+  }
+
+  function pickCustomMissions(remote, lp) {
+    const remoteList = asList(remote && remote.custom_missions);
+    const localList = asList(lp && lp.customMissions);
+    const remoteTs = (remote && remote.custom_missions_updated_at) || 0;
+    const localTs = (lp && lp.customMissionsUpdatedAt) || 0;
+    if (remoteTs > localTs) return remoteList;
+    if (localTs > remoteTs) return localList;
+    return remoteList.length >= localList.length ? remoteList : localList;
+  }
+
+  function mergeCustomLog(localLog, remoteLog) {
+    const map = {};
+    asList(localLog).concat(asList(remoteLog)).forEach(item => {
+      if (!item || !item.missionId || !item.periodKey) return;
+      const k = item.missionId + "|" + item.periodKey;
+      if (!map[k] || (item.ts || 0) > (map[k].ts || 0)) map[k] = item;
+    });
+    return Object.keys(map).map(k => map[k]);
+  }
+
+  function mergeCustomCents(lp, remote) {
+    const log = mergeCustomLog(lp.customMissionLog, remote.custom_mission_log);
+    const fromLog = log.reduce((sum, item) => sum + (item.amountCents || 0), 0);
+    return Math.max(lp.customMissionCents || 0, remote.custom_mission_cents || 0, fromLog);
+  }
+
+  function pickBankDeposits(remote, lp) {
+    const remoteList = asList(remote && remote.bank_deposits);
+    const localList = asList(lp && lp.bankDeposits);
+    const remoteTs = (remote && remote.bank_updated_at) || 0;
+    const localTs = (lp && lp.bankUpdatedAt) || 0;
+    if (remoteTs > localTs) return remoteList;
+    if (localTs > remoteTs) return localList;
+    return remoteList.length >= localList.length ? remoteList : localList;
   }
 
   function persistCloudNow() {
@@ -117,7 +165,7 @@ const LEW = (() => {
     if (!user || !user.email || !db || !db.getProfile || !db.enabled()) return user;
     try {
       const remote = await db.getProfile(user.email);
-      if (remote && (remote.kid_name || remote.stars || remote.household_stars || remote.approval_code)) {
+      if (remote && (remote.kid_name || remote.stars || remote.household_stars || remote.approval_code || (remote.custom_missions && remote.custom_missions.length) || remote.custom_mission_cents || (remote.bank_deposits && remote.bank_deposits.length))) {
         upsertUser({
           id: user.id,
           email: user.email,
@@ -290,6 +338,341 @@ const LEW = (() => {
     saveUsers(users);
     persistCloudNow();
     return 0;
+  }
+
+  // ---------- custom missions (pocket money) ----------
+  const REPEAT_LABEL = { once: "Once", daily: "Daily", weekly: "Weekly", monthly: "Monthly" };
+
+  function isoWeekKey(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return d.getUTCFullYear() + "-W" + String(week).padStart(2, "0");
+  }
+
+  function customPeriodKey(repeat, date, missionId) {
+    const d = date || new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const r = String(repeat || "daily").toLowerCase();
+    if (r === "once") return "once:" + (missionId || "x");
+    if (r === "weekly") return "w:" + isoWeekKey(d);
+    if (r === "monthly") return "m:" + y + "-" + m;
+    return "d:" + y + "-" + m + "-" + day;
+  }
+
+  function formatMoney(cents, currency) {
+    const n = Math.max(0, Number(cents) || 0) / 100;
+    const code = String(currency || "USD").toUpperCase();
+    try {
+      return new Intl.NumberFormat(undefined, { style: "currency", currency: code }).format(n);
+    } catch {
+      return code + " " + n.toFixed(2);
+    }
+  }
+
+  function parseMoneyToCents(raw) {
+    const n = Number(String(raw || "").replace(/[^0-9.]/g, ""));
+    if (!isFinite(n) || n <= 0) return null;
+    const cents = Math.round(n * 100);
+    if (cents < 1 || cents > 9999999) return null;
+    return cents;
+  }
+
+  function getCustomMissions() {
+    const u = getCurrentUser();
+    return asList(u && u.profile && u.profile.customMissions);
+  }
+
+  function getCustomMissionLog() {
+    const u = getCurrentUser();
+    return asList(u && u.profile && u.profile.customMissionLog);
+  }
+
+  function walletFromItems(items) {
+    const w = {};
+    asList(items).forEach(item => {
+      const c = String((item && item.currency) || "USD").toUpperCase();
+      w[c] = (w[c] || 0) + ((item && item.amountCents) || 0);
+    });
+    return w;
+  }
+
+  function addWallets(a, b) {
+    const w = Object.assign({}, a || {});
+    Object.keys(b || {}).forEach(k => { w[k] = (w[k] || 0) + (b[k] || 0); });
+    return w;
+  }
+
+  function formatWalletMap(w) {
+    const keys = Object.keys(w || {}).filter(k => (w[k] || 0) !== 0).sort();
+    if (!keys.length) return formatMoney(0, "USD");
+    return keys.map(c => formatMoneyDelta(w[c], c)).join(" · ");
+  }
+
+  function walletCents(w) {
+    return Object.keys(w || {}).reduce((sum, k) => sum + (w[k] || 0), 0);
+  }
+
+  function getCustomMissionCents() {
+    return walletCents(getFullWallet());
+  }
+
+  function getCustomMissionWallet() {
+    const w = walletFromItems(getCustomMissionLog());
+    const u = getCurrentUser();
+    const legacy = (u && u.profile && u.profile.customMissionCents) || 0;
+    if (!Object.keys(w).length && legacy) w.USD = legacy;
+    return w;
+  }
+
+  function getBankDeposits() {
+    const u = getCurrentUser();
+    return asList(u && u.profile && u.profile.bankDeposits);
+  }
+
+  function getBankWallet(kind) {
+    const list = getBankDeposits().filter(d => !kind || d.kind === kind);
+    return walletFromItems(list);
+  }
+
+  function absWallet(w) {
+    const out = {};
+    Object.keys(w || {}).forEach(k => { out[k] = Math.abs(w[k] || 0); });
+    return out;
+  }
+
+  function formatMoneyDelta(cents, currency) {
+    const n = Number(cents) || 0;
+    const formatted = formatMoney(Math.abs(n), currency);
+    return n < 0 ? "−" + formatted : formatted;
+  }
+
+  function getFullWallet() {
+    return addWallets(getCustomMissionWallet(), getBankWallet());
+  }
+
+  function formatWallet() {
+    return formatWalletMap(getFullWallet());
+  }
+
+  function getWalletHistory() {
+    const items = [];
+    getCustomMissionLog().forEach(item => {
+      items.push({
+        id: (item.missionId || "m") + "|" + (item.periodKey || item.ts || ""),
+        kind: "mission",
+        title: item.title || "Custom Mission",
+        amountCents: item.amountCents || 0,
+        currency: item.currency || "USD",
+        ts: item.ts || 0
+      });
+    });
+    getBankDeposits().forEach(item => {
+      const kind = item.kind === "gift_card" ? "gift_card" : item.kind === "spend" ? "spend" : "cash";
+      items.push({
+        id: item.id,
+        kind,
+        title: item.note || (kind === "gift_card" ? "Gift Card" : kind === "spend" ? "Spending" : "Cash"),
+        amountCents: item.amountCents || 0,
+        currency: item.currency || "USD",
+        ts: item.ts || 0
+      });
+    });
+    items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    return items;
+  }
+
+  function getWalletBreakdown() {
+    return {
+      total: getFullWallet(),
+      missions: getCustomMissionWallet(),
+      giftCard: getBankWallet("gift_card"),
+      cash: getBankWallet("cash"),
+      spent: absWallet(getBankWallet("spend")),
+      history: getWalletHistory()
+    };
+  }
+
+  function saveBankState(patch) {
+    const id = getCurrentId();
+    if (!id) return null;
+    const users = loadUsers();
+    if (!users[id]) return null;
+    const p = users[id].profile || {};
+    Object.keys(patch).forEach(k => { p[k] = patch[k]; });
+    p.bankUpdatedAt = Date.now();
+    users[id].profile = p;
+    users[id].updatedAt = Date.now();
+    saveUsers(users);
+    persistCloudNow();
+    return p;
+  }
+
+  function addBankDeposit({ kind, amount, currency, note }) {
+    const t = String(kind || "").toLowerCase();
+    const type = t === "gift_card" || t === "cash" || t === "spend" ? t : "";
+    const cents = typeof amount === "number" && amount >= 1 ? Math.round(amount) : parseMoneyToCents(amount);
+    const cur = String(currency || "USD").trim().toUpperCase();
+    const label = String(note || "").trim().slice(0, 80);
+    if (!type) return { ok: false, reason: "kind" };
+    if (!cents) return { ok: false, reason: "amount" };
+    if (!/^[A-Z]{3}$/.test(cur)) return { ok: false, reason: "currency" };
+    const list = getBankDeposits().slice();
+    list.push({
+      id: "bk_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8),
+      kind: type,
+      note: label,
+      amountCents: type === "spend" ? -cents : cents,
+      currency: cur,
+      ts: Date.now()
+    });
+    saveBankState({ bankDeposits: list });
+    return { ok: true };
+  }
+
+  function removeBankDeposit(depositId) {
+    const list = getBankDeposits().filter(d => d.id !== depositId);
+    saveBankState({ bankDeposits: list });
+    return { ok: true };
+  }
+
+  function isCustomMissionDone(mission) {
+    if (!mission) return false;
+    const key = customPeriodKey(mission.repeat, null, mission.id);
+    return getCustomMissionLog().some(item => item.missionId === mission.id && item.periodKey === key);
+  }
+
+  function customChecksKey() {
+    return "lew_cm_checks_" + (getCurrentId() || "anon");
+  }
+  function loadCustomChecks() {
+    try { return JSON.parse(localStorage.getItem(customChecksKey()) || "{}"); }
+    catch { return {}; }
+  }
+  function saveCustomChecks(obj) {
+    localStorage.setItem(customChecksKey(), JSON.stringify(obj || {}));
+  }
+  function customCheckId(mission) {
+    return mission.id + "|" + customPeriodKey(mission.repeat, null, mission.id);
+  }
+  function isCustomMissionChecked(mission) {
+    if (!mission) return false;
+    if (isCustomMissionDone(mission)) return true;
+    return !!loadCustomChecks()[customCheckId(mission)];
+  }
+  function toggleCustomMissionCheck(missionId, checked) {
+    const mission = getCustomMissions().find(m => m.id === missionId);
+    if (!mission || isCustomMissionDone(mission)) return isCustomMissionChecked(mission);
+    const store = loadCustomChecks();
+    const key = customCheckId(mission);
+    if (checked) store[key] = true;
+    else delete store[key];
+    saveCustomChecks(store);
+    return !!store[key];
+  }
+
+  function saveCustomMissionState(patch) {
+    const id = getCurrentId();
+    if (!id) return null;
+    const users = loadUsers();
+    if (!users[id]) return null;
+    const p = users[id].profile || {};
+    Object.keys(patch).forEach(k => { p[k] = patch[k]; });
+    p.customMissionsUpdatedAt = Date.now();
+    users[id].profile = p;
+    users[id].updatedAt = Date.now();
+    saveUsers(users);
+    persistCloudNow();
+    return p;
+  }
+
+  function addCustomMission({ title, amount, repeat, currency }) {
+    const name = String(title || "").trim().slice(0, 80);
+    const cents = typeof amount === "number" && amount >= 1 ? Math.round(amount) : parseMoneyToCents(amount);
+    const r = String(repeat || "").toLowerCase();
+    const cur = String(currency || "USD").trim().toUpperCase();
+    if (!name || name.length < 2) return { ok: false, reason: "title" };
+    if (!cents) return { ok: false, reason: "amount" };
+    if (!REPEAT_LABEL[r]) return { ok: false, reason: "repeat" };
+    if (!/^[A-Z]{3}$/.test(cur)) return { ok: false, reason: "currency" };
+    const list = getCustomMissions().slice();
+    list.push({
+      id: "cm_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8),
+      title: name,
+      amountCents: cents,
+      currency: cur,
+      repeat: r,
+      createdAt: Date.now()
+    });
+    saveCustomMissionState({ customMissions: list });
+    return { ok: true };
+  }
+
+  function updateCustomMission(missionId, { title, amount, repeat, currency }) {
+    const name = String(title || "").trim().slice(0, 80);
+    const cents = typeof amount === "number" && amount >= 1 ? Math.round(amount) : parseMoneyToCents(amount);
+    const r = String(repeat || "").toLowerCase();
+    const cur = String(currency || "USD").trim().toUpperCase();
+    if (!name || name.length < 2) return { ok: false, reason: "title" };
+    if (!cents) return { ok: false, reason: "amount" };
+    if (!REPEAT_LABEL[r]) return { ok: false, reason: "repeat" };
+    if (!/^[A-Z]{3}$/.test(cur)) return { ok: false, reason: "currency" };
+    const list = getCustomMissions().slice();
+    const idx = list.findIndex(m => m.id === missionId);
+    if (idx < 0) return { ok: false, reason: "missing" };
+    list[idx] = {
+      ...list[idx],
+      title: name,
+      amountCents: cents,
+      currency: cur,
+      repeat: r,
+      updatedAt: Date.now()
+    };
+    saveCustomMissionState({ customMissions: list.slice() });
+    return { ok: true };
+  }
+
+  function removeCustomMission(missionId) {
+    const list = getCustomMissions().filter(m => m.id !== missionId);
+    saveCustomMissionState({ customMissions: list });
+    return { ok: true };
+  }
+
+  function approveCustomMission(missionId) {
+    return approveCustomMissions([missionId]);
+  }
+
+  function approveCustomMissions(ids) {
+    const wanted = new Set((ids || []).filter(Boolean));
+    const log = getCustomMissionLog().slice();
+    let earnedBy = {};
+    getCustomMissions().forEach(mission => {
+      if (!wanted.has(mission.id)) return;
+      if (isCustomMissionDone(mission)) return;
+      const cents = mission.amountCents || 0;
+      const currency = String(mission.currency || "USD").toUpperCase();
+      log.push({
+        missionId: mission.id,
+        title: mission.title,
+        periodKey: customPeriodKey(mission.repeat, null, mission.id),
+        amountCents: cents,
+        currency,
+        ts: Date.now()
+      });
+      earnedBy[currency] = (earnedBy[currency] || 0) + cents;
+    });
+    const earnedTotal = Object.keys(earnedBy).reduce((s, k) => s + earnedBy[k], 0);
+    if (!earnedTotal) return { ok: false, reason: "none" };
+    const usdAdd = earnedBy.USD || 0;
+    saveCustomMissionState({
+      customMissionLog: log,
+      customMissionCents: (getCustomMissionWallet().USD || 0) + usdAdd
+    });
+    return { ok: true, earnedBy, wallet: getCustomMissionWallet() };
   }
 
   // ---------- mystery gift catalog ----------
@@ -508,7 +891,11 @@ const LEW = (() => {
               EMAILJS_CONFIG.templateId);
   }
 
-  function validEmail(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s || ""); }
+  function validEmail(s) {
+    const email = String(s || "").trim();
+    if (!email || email.length > 254) return false;
+    return /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/.test(email);
+  }
 
   async function sendWelcomeEmail(user) {
     if (!user) return { ok: false, reason: "no-user" };
@@ -875,6 +1262,31 @@ const LEW = (() => {
     getHouseholdAchievements,
     getHouseholdStarStyle,
     resetHouseholdStars,
+    // custom missions / pocket money
+    addCustomMission,
+    updateCustomMission,
+    removeCustomMission,
+    approveCustomMissions,
+    getCustomMissions,
+    getCustomMissionLog,
+    getCustomMissionCents,
+    getCustomMissionWallet,
+    getBankDeposits,
+    getBankWallet,
+    getFullWallet,
+    getWalletBreakdown,
+    getWalletHistory,
+    addBankDeposit,
+    removeBankDeposit,
+    formatWalletMap,
+    formatMoneyDelta,
+    isCustomMissionDone,
+    isCustomMissionChecked,
+    toggleCustomMissionCheck,
+    customPeriodKey,
+    formatMoney,
+    formatWallet,
+    parseMoneyToCents,
     // mystery gifts
     starsPerMysteryBox,
     starsPerHouseholdMysteryBox,

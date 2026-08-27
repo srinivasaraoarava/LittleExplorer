@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../styles.css?v=11" />
+  <link rel="stylesheet" href="../styles.css?v=23" />
   <style>
     .draw-studio {
       max-width: 1160px;
@@ -498,6 +498,9 @@
         <span class="reward-part hh-stars"><span class="hh-ico" id="householdStarIco">★</span><span id="householdStarCount">0</span></span>
         <span class="reward-part hh-gifts" id="householdGiftPart"><span class="gift-ico">🎁</span><span id="householdGiftCount">0</span></span>
       </button>
+      <button type="button" class="star-badge money-badge" id="moneyBadge" title="Pocket money earned" style="display:none;">
+        <span class="reward-part money"><span class="money-ico">💵</span><span id="moneyCount">$0.00</span></span>
+      </button>
       <div class="user-chip subpage-chip" id="userChip" style="display:none;">
         <span class="avatar" id="userAvatar">🙂</span>
         <span class="who"><span id="userName">Explorer</span><small id="userMeta">Age —</small></span>
@@ -589,9 +592,9 @@
   </section>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../supabase-config.js?v=2"></script>
-  <script src="../auth.js?v=15"></script>
+  <script src="../auth.js?v=22"></script>
   <script src="../themes.js?v=1"></script>
-  <script src="../mystery-box.js?v=5"></script>
+  <script src="../mystery-box.js?v=11"></script>
   <script src="../approval.js?v=7"></script>
   <script>
     const _user = LEW.requireAuth({ loginUrl: '../login.html' });

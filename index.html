@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Little Explorer World — 4 Fun Apps for Curious Kids</title>
+  <title>Little Explorer World — Fun Apps for Curious Kids</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=12" />
+  <link rel="stylesheet" href="styles.css?v=23" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
@@ -44,6 +44,9 @@
         <span class="reward-part hh-stars"><span class="hh-ico" id="householdStarIco">★</span><span id="householdStarCount">0</span></span>
         <span class="reward-part hh-gifts" id="householdGiftPart"><span class="gift-ico">🎁</span><span id="householdGiftCount">0</span></span>
       </button>
+      <button type="button" class="star-badge money-badge" id="moneyBadge" title="Pocket money earned" style="display:none;">
+        <span class="reward-part money"><span class="money-ico">💵</span><span id="moneyCount">$0.00</span></span>
+      </button>
       <div class="profile-menu" id="profileMenu" style="display:none;">
         <button type="button" class="user-chip profile-trigger" id="userChip" aria-haspopup="true" aria-expanded="false">
           <span class="avatar" id="userAvatar">🙂</span>
@@ -74,11 +77,11 @@
     <h1 class="title">
       <span id="heroGreeting">Little Explorer</span> <span class="gradient-text">World!</span>
     </h1>
-    <p class="subtitle" id="heroSub">Four magical worlds, endless discoveries — pick your adventure below! ✨</p>
+    <p class="subtitle" id="heroSub">Five magical worlds, endless discoveries — pick your adventure below! ✨</p>
 
     <div class="chips">
       <span class="chip">🎓 AP & CBSE Aligned</span>
-      <span class="chip">🧩 4 Fun Apps</span>
+      <span class="chip">🧩 5 Fun Apps</span>
       <span class="chip">🎂 Ages 3–15</span>
     </div>
 
@@ -107,7 +110,7 @@
           <div class="stat"><div class="stat-num">3+</div><div class="stat-label">AGES</div></div>
           <div class="stat"><div class="stat-num">🏆</div><div class="stat-label">REWARDS</div></div>
         </div>
-        <a class="open-btn open-green" href="apps/tiny-genius.html">Open Tiny Genius →</a>
+        <a class="open-btn open-green" href="apps/tiny-genius.html?v=14">Open Tiny Genius →</a>
       </article>
 
       <!-- Card 2: PlayVerse -->
@@ -189,6 +192,30 @@
         <a class="open-btn open-blue" href="apps/world-wonders.html">Open World Wonders →</a>
       </article>
 
+      <!-- Card 5: Make Pocket Money -->
+      <article class="card card-gold" data-app="pocket-money">
+        <div class="card-badge badge-new">💰 NEW</div>
+        <div class="card-head">
+          <span class="card-num">5</span>
+          <span class="card-tag">🏡 CHORES</span>
+        </div>
+        <div class="card-icon">💵</div>
+        <h2 class="card-title">Make Pocket Money</h2>
+        <p class="card-sub">Help at home, earn stars and money</p>
+        <p class="card-desc">Finish household missions and parent custom tasks. Keep earned money, gift cards, and cash in My Bank.</p>
+        <div class="pills">
+          <span class="pill">🏡 Household</span>
+          <span class="pill">📝 Custom Mission</span>
+          <span class="pill">🏦 My Bank</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-num">5</div><div class="stat-label">MISSIONS</div></div>
+          <div class="stat"><div class="stat-num">★</div><div class="stat-label">STAR</div></div>
+          <div class="stat"><div class="stat-num">🎁</div><div class="stat-label">REWARDS</div></div>
+        </div>
+        <a class="open-btn open-gold" href="apps/pocket-money.html">Open Make Pocket Money →</a>
+      </article>
+
     </section>
 
     <footer class="foot">
@@ -231,8 +258,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js?v=2"></script>
-  <script src="auth.js?v=15"></script>
-  <script src="mystery-box.js?v=5"></script>
+  <script src="auth.js?v=22"></script>
+  <script src="mystery-box.js?v=11"></script>
   <script src="approval.js?v=7"></script>
   <script src="themes.js?v=1"></script>
   <script>

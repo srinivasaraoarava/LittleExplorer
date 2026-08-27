@@ -1,60 +1,14 @@
--- Little Explorer World — cloud profiles
--- Run this once in the Supabase SQL editor.
+-- Run this in the Supabase SQL editor for the existing Little Explorer project.
+-- Adds Custom Mission tasks, earned pocket money, and completion history.
 
-create table if not exists public.explorer_profiles (
-  email text primary key,
-  google_name text not null default '',
-  kid_name text not null default '',
-  age integer,
-  gender text not null default '',
-  theme text not null default 'explorer',
-  approval_code text not null default '',
-  approval_email text not null default '',
-  stars integer not null default 0,
-  household_stars integer not null default 0,
-  achievements jsonb not null default '[]'::jsonb,
-  household_achievements jsonb not null default '[]'::jsonb,
-  gifts jsonb not null default '[]'::jsonb,
-  puzzle_plays jsonb not null default '{}'::jsonb,
-  puzzle_recent jsonb not null default '{}'::jsonb,
-  puzzle_mix_seed integer not null default 0,
-  puzzle_mix_index integer not null default 0,
-    custom_missions jsonb not null default '[]'::jsonb,
-    custom_mission_cents integer not null default 0,
-    custom_mission_log jsonb not null default '[]'::jsonb,
-    custom_missions_updated_at bigint not null default 0,
-    bank_deposits jsonb not null default '[]'::jsonb,
-    bank_updated_at bigint not null default 0,
-    created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-alter table public.explorer_profiles enable row level security;
-
-revoke all on public.explorer_profiles from anon, authenticated, public;
-grant usage on schema public to anon, authenticated;
-
-create or replace function public.get_explorer_profile(p_email text)
-returns jsonb
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  rec public.explorer_profiles;
-begin
-  if p_email is null or length(trim(p_email)) = 0 then
-    return null;
-  end if;
-  select * into rec
-  from public.explorer_profiles
-  where email = lower(trim(p_email));
-  if not found then
-    return null;
-  end if;
-  return to_jsonb(rec);
-end;
-$$;
+alter table public.explorer_profiles
+  add column if not exists custom_missions jsonb not null default '[]'::jsonb;
+alter table public.explorer_profiles
+  add column if not exists custom_mission_cents integer not null default 0;
+alter table public.explorer_profiles
+  add column if not exists custom_mission_log jsonb not null default '[]'::jsonb;
+alter table public.explorer_profiles
+  add column if not exists custom_missions_updated_at bigint not null default 0;
 
 create or replace function public.upsert_explorer_profile(p_row jsonb)
 returns jsonb
@@ -93,8 +47,6 @@ begin
     custom_mission_cents,
     custom_mission_log,
     custom_missions_updated_at,
-    bank_deposits,
-    bank_updated_at,
     updated_at
   ) values (
     em,
@@ -118,8 +70,6 @@ begin
     greatest(coalesce((p_row->>'custom_mission_cents')::int, 0), 0),
     coalesce(p_row->'custom_mission_log', '[]'::jsonb),
     coalesce((p_row->>'custom_missions_updated_at')::bigint, 0),
-    coalesce(p_row->'bank_deposits', '[]'::jsonb),
-    coalesce((p_row->>'bank_updated_at')::bigint, 0),
     now()
   )
   on conflict (email) do update set
@@ -147,8 +97,6 @@ begin
     custom_mission_cents = excluded.custom_mission_cents,
     custom_mission_log = excluded.custom_mission_log,
     custom_missions_updated_at = excluded.custom_missions_updated_at,
-    bank_deposits = excluded.bank_deposits,
-    bank_updated_at = excluded.bank_updated_at,
     updated_at = now()
   returning * into rec;
 
@@ -156,23 +104,4 @@ begin
 end;
 $$;
 
-grant execute on function public.get_explorer_profile(text) to anon, authenticated;
 grant execute on function public.upsert_explorer_profile(jsonb) to anon, authenticated;
-
-create or replace function public.delete_explorer_profile(p_email text)
-returns boolean
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  if p_email is null or length(trim(p_email)) = 0 then
-    return false;
-  end if;
-  delete from public.explorer_profiles
-  where email = lower(trim(p_email));
-  return found;
-end;
-$$;
-
-grant execute on function public.delete_explorer_profile(text) to anon, authenticated;

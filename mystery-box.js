@@ -48,7 +48,7 @@
 
     if (starCountEl) starCountEl.textContent = stars;
     if (giftCountEl) giftCountEl.textContent = quizGifts.length;
-    if (giftPart) giftPart.style.display = quizGifts.length > 0 ? "" : "none";
+    if (giftPart) giftPart.style.display = "";
     if (badge) {
       badge.style.display = (stars > 0 || quizGifts.length > 0) ? "" : "none";
       if (!badge.dataset.wired) {
@@ -80,6 +80,23 @@
         hhBadge.dataset.wired = "1";
         hhBadge.style.cursor = "pointer";
         hhBadge.addEventListener("click", () => showGiftList({ kind: "household" }));
+      }
+    }
+
+    const moneyBadge = document.getElementById("moneyBadge");
+    const moneyCountEl = document.getElementById("moneyCount");
+    const cents = (LEW.getCustomMissionCents && LEW.getCustomMissionCents()) || 0;
+    const missionCount = (LEW.getCustomMissions && LEW.getCustomMissions().length) || 0;
+    const depositCount = (LEW.getBankDeposits && LEW.getBankDeposits().length) || 0;
+    if (moneyCountEl) moneyCountEl.textContent = (LEW.formatWallet && LEW.formatWallet()) || (LEW.formatMoney && LEW.formatMoney(cents)) || ("$" + (cents / 100).toFixed(2));
+    if (moneyBadge) {
+      moneyBadge.style.display = (cents !== 0 || missionCount > 0 || depositCount > 0) ? "" : "none";
+      moneyBadge.classList.toggle("negative", cents < 0);
+      moneyBadge.title = "See pocket money breakdown";
+      moneyBadge.style.cursor = "pointer";
+      if (!moneyBadge.dataset.wired) {
+        moneyBadge.dataset.wired = "1";
+        moneyBadge.addEventListener("click", () => showWalletBreakdown());
       }
     }
   }
@@ -276,6 +293,90 @@
     });
   }
 
+  function moneyLine(w) {
+    if (LEW.formatWalletMap) return LEW.formatWalletMap(w || {});
+    if (LEW.formatMoney) return LEW.formatMoney(0);
+    return "$0.00";
+  }
+
+  function showWalletBreakdown() {
+    const br = (LEW.getWalletBreakdown && LEW.getWalletBreakdown()) || {
+      total: {}, missions: {}, giftCard: {}, cash: {}, history: []
+    };
+    const overlay = document.createElement("div");
+    overlay.className = "mystery-overlay";
+    const KIND = {
+      mission: { ico: "📝", label: "Custom Mission" },
+      gift_card: { ico: "🎁", label: "Gift Card" },
+      cash: { ico: "💵", label: "Cash" },
+      spend: { ico: "🛒", label: "Spending" }
+    };
+    const listHtml = (br.history || []).length
+      ? br.history.map(item => {
+          const meta = KIND[item.kind] || KIND.cash;
+          const d = new Date(item.ts || Date.now());
+          const dateStr = d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+          const money = (LEW.formatMoneyDelta && LEW.formatMoneyDelta(item.amountCents, item.currency))
+            || (LEW.formatMoney && LEW.formatMoney(Math.abs(item.amountCents || 0), item.currency)) || "";
+          return `
+            <div class="gift-list-item">
+              <div class="gift-list-emoji">${meta.ico}</div>
+              <div class="gift-list-body">
+                <div class="gift-list-name">${escapeHtml(item.title || meta.label)}</div>
+                <div class="gift-list-meta"><span class="gift-list-date">${meta.label} · ${dateStr}</span></div>
+              </div>
+              <div class="wallet-item-amt${item.kind === "spend" ? " spend" : ""}">${escapeHtml(money)}</div>
+            </div>`;
+        }).join("")
+      : `<div class="gift-list-empty">
+          <div style="font-size:52px;">🏦</div>
+          <div style="font-family:'Baloo 2'; font-weight:800; font-size:20px; margin-top:8px;">No money yet!</div>
+          <div style="color:#64748b; margin-top:6px;">Finish custom missions or add a gift card or cash in <b>My Bank</b>.</div>
+        </div>`;
+    const totalCents = Object.keys(br.total || {}).reduce((s, k) => s + (br.total[k] || 0), 0);
+    const negClass = totalCents < 0 ? " negative" : "";
+    overlay.innerHTML = `
+      <div class="mystery-card gift-list-card wallet-card" role="dialog" aria-labelledby="walletTitle">
+        <div class="gift-list-head">
+          <div>
+            <h2 class="mystery-title" id="walletTitle">💵 Pocket Money</h2>
+            <p class="mystery-sub">Breakdown of everything in My Bank</p>
+          </div>
+          <div class="gift-list-stats wallet-stats${negClass}">
+            <div><b>${escapeHtml(moneyLine(br.total))}</b><span>Total</span></div>
+          </div>
+        </div>
+        <div class="wallet-break">
+          <div class="wallet-break-item"><span>📝 Missions</span><b>${escapeHtml(moneyLine(br.missions))}</b></div>
+          <div class="wallet-break-item"><span>🎁 Gift Cards</span><b>${escapeHtml(moneyLine(br.giftCard))}</b></div>
+          <div class="wallet-break-item"><span>💵 Cash</span><b>${escapeHtml(moneyLine(br.cash))}</b></div>
+          <div class="wallet-break-item spent"><span>🛒 Spent</span><b>${escapeHtml(moneyLine(br.spent))}</b></div>
+        </div>
+        <div class="gift-list">${listHtml}</div>
+        <div class="wallet-break-actions">
+          <button type="button" class="mystery-close-btn gift-list-close">Close</button>
+          <button type="button" class="mystery-close-btn wallet-open-bank">Open My Bank</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add("show"));
+    const close = () => {
+      overlay.classList.remove("show");
+      setTimeout(() => overlay.remove(), 350);
+    };
+    overlay.querySelector(".gift-list-close").addEventListener("click", close);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+    overlay.querySelector(".wallet-open-bank").addEventListener("click", () => {
+      close();
+      if (/pocket-money\.html/i.test(location.pathname || "")) {
+        window.dispatchEvent(new CustomEvent("lew-open-bank"));
+      } else {
+        const base = location.pathname.indexOf("/apps/") >= 0 ? "." : "apps";
+        location.href = base + "/pocket-money.html#bank";
+      }
+    });
+  }
+
   // ---------------- convenience: trigger box on star milestone ----------------
   function maybeAwardMysteryBox(starTotal) {
     if (!starTotal || starTotal % STARS_PER_BOX !== 0) return false;
@@ -292,6 +393,7 @@
   window.LEW = window.LEW || {};
   window.LEW.showMysteryBox = showMysteryBox;
   window.LEW.showGiftList = showGiftList;
+  window.LEW.showWalletBreakdown = showWalletBreakdown;
   window.LEW.refreshRewardBadge = refreshRewardBadge;
   window.LEW.maybeAwardMysteryBox = maybeAwardMysteryBox;
   window.LEW.maybeAwardHouseholdMysteryBox = maybeAwardHouseholdMysteryBox;

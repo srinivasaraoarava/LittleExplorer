@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Make Pocket Money — Little Explorer World</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css?v=23" />
+</head>
+<body class="subpage theme-gold">
+  <div class="float-sprites" aria-hidden="true">
+    <span class="sprite" style="--x:10%;--d:16s;--delay:-2s;">💵</span>
+    <span class="sprite" style="--x:30%;--d:20s;--delay:-8s;">🏡</span>
+    <span class="sprite" style="--x:55%;--d:18s;--delay:-4s;">★</span>
+    <span class="sprite" style="--x:80%;--d:22s;--delay:-10s;">🎁</span>
+  </div>
+
+  <header class="subpage-top">
+    <a href="../index.html" class="back-btn">← Back to Explorer</a>
+    <div style="display:inline-flex; gap:10px; align-items:center;">
+      <button type="button" class="star-badge" id="starBadge" title="View quiz rewards" style="display:none;">
+        <span class="reward-part stars"><span class="star-ico">⭐</span><span id="starCount">0</span></span>
+        <span class="reward-part gifts" id="giftPart" style="display:none;"><span class="gift-ico">🎁</span><span id="giftCount">0</span></span>
+      </button>
+      <button type="button" class="star-badge household-badge" id="householdBadge" title="View household rewards" style="display:none;">
+        <span class="reward-part hh-stars"><span class="hh-ico" id="householdStarIco">★</span><span id="householdStarCount">0</span></span>
+        <span class="reward-part hh-gifts" id="householdGiftPart"><span class="gift-ico">🎁</span><span id="householdGiftCount">0</span></span>
+      </button>
+      <button type="button" class="star-badge money-badge" id="moneyBadge" title="Pocket money earned" style="display:none;">
+        <span class="reward-part money"><span class="money-ico">💵</span><span id="moneyCount">$0.00</span></span>
+      </button>
+      <div class="user-chip subpage-chip" id="userChip" style="display:none;">
+        <span class="avatar" id="userAvatar">🙂</span>
+        <span class="who"><span id="userName">Explorer</span><small id="userMeta">Age —</small></span>
+      </div>
+      <button class="signout-btn subpage-btn" id="signoutBtn" style="display:none;">Sign out</button>
+    </div>
+  </header>
+
+  <section class="sub-hero">
+    <div style="font-size:64px;">💵</div>
+    <h1>Make Pocket Money</h1>
+    <p>Help at home, earn stars and money. Household missions, custom tasks, and My Bank. 🏡</p>
+  </section>
+
+  <section class="tiles">
+    <button class="tile" data-tile="household">
+      <span class="tile-icon">🏡</span>
+      <div class="tile-title">Household</div>
+      <div class="tile-sub">5 daily tasks · earn a ★</div>
+    </button>
+    <button class="tile" data-tile="custom">
+      <span class="tile-icon">📝</span>
+      <div class="tile-title">Custom Mission</div>
+      <div class="tile-sub">Parent tasks · earn $</div>
+    </button>
+    <button class="tile" data-tile="bank">
+      <span class="tile-icon">🏦</span>
+      <div class="tile-title">My Bank</div>
+      <div class="tile-sub">Earned, gift cards &amp; cash</div>
+    </button>
+  </section>
+
+  <section class="household-view" id="household-view" style="display:none;">
+    <div class="household-card">
+      <div class="household-head">
+        <div class="household-emoji">🏡</div>
+        <div>
+          <h2 class="household-title">Today's Household Missions</h2>
+          <div class="household-sub" id="householdSub">Finish 5, then submit to earn a ★</div>
+        </div>
+      </div>
+      <div class="household-progress-wrap">
+        <div class="household-progress-bar"><div class="household-progress-fill" id="householdProgressFill"></div></div>
+        <div class="household-progress-label" id="householdProgressLabel">0 / 5 done</div>
+      </div>
+      <ul class="household-list" id="householdList"></ul>
+      <div class="household-actions">
+        <button class="primary-btn" id="household-back">← Back to Make Pocket Money</button>
+        <button class="primary-btn household-submit-btn" id="household-submit" type="button">Submit &amp; Earn ★</button>
+        <button class="primary-btn household-reset-btn" id="household-reset" type="button">Reset today (test)</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="household-view" id="custom-view" style="display:none;">
+    <div class="household-card">
+      <div class="household-head">
+        <div class="household-emoji">📝</div>
+        <div>
+          <h2 class="household-title">Custom Missions</h2>
+          <div class="household-sub" id="cmSub">Check off finished tasks, then submit to earn money</div>
+        </div>
+      </div>
+      <ul class="household-list" id="cmList"></ul>
+      <div class="household-actions">
+        <button class="primary-btn" id="custom-back">← Back to Make Pocket Money</button>
+        <button class="primary-btn cm-add-open" id="cmAddOpen" type="button">＋ Add Task</button>
+        <button class="primary-btn cm-submit-btn" id="cmSubmit" type="button">Submit &amp; Earn 💵</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="household-view" id="bank-view" style="display:none;">
+    <div class="household-card">
+      <div class="household-head">
+        <div class="household-emoji">🏦</div>
+        <div>
+          <h2 class="household-title">My Bank</h2>
+          <div class="household-sub" id="bankSub">See earned money, gift cards, and cash.</div>
+        </div>
+      </div>
+      <div class="bank-total" id="bankTotal">$0.00</div>
+      <div class="bank-pills" id="bankPills"></div>
+      <ul class="household-list" id="bankList"></ul>
+      <div class="household-actions">
+        <button class="primary-btn" id="bank-back">← Back to Make Pocket Money</button>
+        <button class="primary-btn bank-add-gift" id="bankAddGift" type="button">＋ Gift Card</button>
+        <button class="primary-btn bank-add-cash" id="bankAddCash" type="button">＋ Cash</button>
+        <button class="primary-btn bank-add-spend" id="bankAddSpend" type="button">− Spend</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal-backdrop" id="cmModal">
+    <div class="modal cm-modal">
+      <h3 id="cmModalTitle">Add Task</h3>
+      <p id="cmModalHint">Parents can save a custom mission with an amount and how often it repeats.</p>
+      <form id="cmAddForm" class="profile-form" novalidate>
+        <label class="field">
+          <span class="label">Task name</span>
+          <input type="text" id="cmTitle" maxlength="80" placeholder="e.g. Walk the dog" autocomplete="off" />
+        </label>
+        <div class="cm-amount-row">
+          <label class="field">
+            <span class="label">Amount</span>
+            <input type="number" id="cmAmount" min="0.01" step="0.01" placeholder="e.g. 2.00" />
+          </label>
+          <label class="field">
+            <span class="label">Currency</span>
+            <input type="hidden" id="cmCurrency" value="USD" />
+            <div class="cm-currency-dd" id="cmCurrencyDd">
+              <button type="button" class="cm-currency-btn" id="cmCurrencyBtn" aria-haspopup="listbox" aria-expanded="false">
+                <span class="cm-flag" id="cmCurrencyFlag">🇺🇸</span>
+                <span class="cm-currency-label" id="cmCurrencyLabel">USD — US Dollar</span>
+                <span class="cm-caret" aria-hidden="true">▼</span>
+              </button>
+              <div class="cm-currency-menu" id="cmCurrencyMenu" role="listbox">
+                <input type="search" class="cm-currency-search" id="cmCurrencySearch" placeholder="Search currency…" autocomplete="off" />
+                <div class="cm-currency-list" id="cmCurrencyList"></div>
+              </div>
+            </div>
+          </label>
+        </div>
+        <div class="field">
+          <span class="label">Repeat</span>
+          <div class="seg" role="radiogroup">
+            <label><input type="radio" name="cmRepeat" value="once"><span>Once</span></label>
+            <label><input type="radio" name="cmRepeat" value="daily" checked><span>Daily</span></label>
+            <label><input type="radio" name="cmRepeat" value="weekly"><span>Weekly</span></label>
+            <label><input type="radio" name="cmRepeat" value="monthly"><span>Monthly</span></label>
+          </div>
+        </div>
+        <p id="cmErr" class="cm-err" style="display:none;"></p>
+        <div class="tiny-modal-actions" style="margin-top:14px;">
+          <button type="button" class="close" id="cmModalClose">Cancel</button>
+          <button type="submit" class="save-btn" style="width:auto;margin:0;">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="bkModal">
+    <div class="modal cm-modal">
+      <h3 id="bkModalTitle">Add Gift Card</h3>
+      <p id="bkModalHint">Parents can add a gift card or cash amount to My Bank.</p>
+      <form id="bkAddForm" class="profile-form" novalidate>
+        <input type="hidden" id="bkKind" value="gift_card" />
+        <div class="field" id="bkTypeField">
+          <span class="label">Type</span>
+          <div class="seg" role="radiogroup">
+            <label><input type="radio" name="bkKindRadio" value="gift_card" checked><span>Gift Card</span></label>
+            <label><input type="radio" name="bkKindRadio" value="cash"><span>Cash</span></label>
+          </div>
+        </div>
+        <div class="cm-amount-row">
+          <label class="field">
+            <span class="label">Amount</span>
+            <input type="number" id="bkAmount" min="0.01" step="0.01" placeholder="e.g. 25.00" />
+          </label>
+          <label class="field">
+            <span class="label">Currency</span>
+            <input type="hidden" id="bkCurrency" value="USD" />
+            <div class="cm-currency-dd" id="bkCurrencyDd">
+              <button type="button" class="cm-currency-btn" id="bkCurrencyBtn" aria-haspopup="listbox" aria-expanded="false">
+                <span class="cm-flag" id="bkCurrencyFlag">🇺🇸</span>
+                <span class="cm-currency-label" id="bkCurrencyLabel">USD — US Dollar</span>
+                <span class="cm-caret" aria-hidden="true">▼</span>
+              </button>
+              <div class="cm-currency-menu" id="bkCurrencyMenu" role="listbox">
+                <input type="search" class="cm-currency-search" id="bkCurrencySearch" placeholder="Search currency…" autocomplete="off" />
+                <div class="cm-currency-list" id="bkCurrencyList"></div>
+              </div>
+            </div>
+          </label>
+        </div>
+        <label class="field">
+          <span class="label">Note (optional)</span>
+          <input type="text" id="bkNote" maxlength="80" placeholder="e.g. Amazon, birthday money" autocomplete="off" />
+        </label>
+        <p id="bkErr" class="cm-err" style="display:none;"></p>
+        <div class="tiny-modal-actions" style="margin-top:14px;">
+          <button type="button" class="close" id="bkModalClose">Cancel</button>
+          <button type="submit" class="save-btn" style="width:auto;margin:0;">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../supabase-config.js?v=2"></script>
+  <script src="../auth.js?v=22"></script>
+  <script src="../themes.js?v=1"></script>
+  <script src="../approval.js?v=7"></script>
+  <script src="../mystery-box.js?v=11"></script>
+  <script src="currencies.js?v=2"></script>
+  <script src="household-bank.js?v=4"></script>
+  <script>
+    const _user = LEW.requireAuth({ loginUrl: '../login.html' });
+    if (_user) {
+      const p = _user.profile || {};
+      document.getElementById('userChip').style.display = '';
+      document.getElementById('signoutBtn').style.display = '';
+      document.getElementById('userName').textContent = p.name || 'Explorer';
+      document.getElementById('userMeta').textContent = `Age ${p.age}`;
+      const av = document.getElementById('userAvatar');
+      if (_user.picture) av.innerHTML = `<img src="${_user.picture}" alt="" />`;
+      else av.textContent = (p.name || 'E').trim().charAt(0).toUpperCase();
+      document.getElementById('signoutBtn').addEventListener('click', () => {
+        LEW.signOut(); window.location.replace('../login.html');
+      });
+      if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+    }
+  </script>
+  <script src="../script.js?v=3"></script>
+  <script>
+    const householdView = document.getElementById('household-view');
+    const customView = document.getElementById('custom-view');
+    const bankView = document.getElementById('bank-view');
+    const tilesEl = document.querySelector('.tiles');
+    const heroEl = document.querySelector('.sub-hero');
+    const householdList = document.getElementById('householdList');
+    const householdSub = document.getElementById('householdSub');
+    const householdProgressFill = document.getElementById('householdProgressFill');
+    const householdProgressLabel = document.getElementById('householdProgressLabel');
+    const HH = window.LEW && window.LEW.Household;
+
+    function openHousehold() {
+      if (!HH) return;
+      tilesEl.style.display = 'none';
+      heroEl.style.display = 'none';
+      customView.style.display = 'none';
+      bankView.style.display = 'none';
+      householdView.style.display = '';
+      renderHousehold();
+    }
+
+    document.querySelectorAll('.tile').forEach(t => {
+      t.addEventListener('click', () => {
+        if (t.dataset.tile === 'household') openHousehold();
+        if (t.dataset.tile === 'custom') openCustom();
+        if (t.dataset.tile === 'bank') openBank();
+      });
+    });
+
+    document.getElementById('household-back').addEventListener('click', showHub);
+    document.getElementById('household-reset').addEventListener('click', () => {
+      if (HH && HH.resetToday) HH.resetToday();
+      if (LEW.resetHouseholdStars) LEW.resetHouseholdStars();
+      if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+      renderHousehold();
+    });
+    document.getElementById('household-submit').addEventListener('click', () => {
+      if (!HH) return;
+      const state = HH.getToday();
+      if (state.awarded) return;
+      if (state.completed !== state.total || state.total === 0) {
+        alert('Finish all 5 missions, then submit to earn a star!');
+        return;
+      }
+      if (typeof LEW.openPictureApproval !== 'function') return;
+      LEW.openPictureApproval({
+        decideTitle: 'Approve these missions?',
+        decideHint: 'All 5 household missions are done. Award a household star?',
+        deniedHint: 'A parent asked you to try again. Check the missions, then submit again!',
+        retryLabel: 'Retry',
+        approveLabel: 'Approve ★',
+        onApprove() {
+          awardHouseholdStarFlow();
+        }
+      });
+    });
+
+    function renderHousehold() {
+      if (!HH) return;
+      const state = HH.getToday();
+      householdList.innerHTML = '';
+      state.items.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'household-item' + (item.done ? ' done' : '');
+        li.innerHTML = `
+          <button class="hh-check" aria-label="Toggle done">${item.done ? '✅' : ''}</button>
+          <div class="hh-body">
+            <div class="hh-title"><span class="hh-emoji">${item.e}</span>${escapeHtml(item.t)}</div>
+            ${item.b ? `<div class="hh-note">${escapeHtml(item.b)}</div>` : ''}
+          </div>
+        `;
+        li.querySelector('.hh-check').addEventListener('click', () => {
+          const newState = HH.toggleDone(item.index, !item.done);
+          if (newState) renderHousehold();
+        });
+        householdList.appendChild(li);
+      });
+
+      const pct = state.total ? (state.completed / state.total) * 100 : 0;
+      householdProgressFill.style.width = pct + '%';
+      householdProgressLabel.textContent = `${state.completed} / ${state.total} done`;
+      if (state.completed === state.total && state.total > 0) {
+        householdSub.textContent = state.awarded
+          ? "All done! You earned today's ★. See you tomorrow!"
+          : "All 5 done! Submit to earn a ★.";
+      } else {
+        const remaining = state.total - state.completed;
+        householdSub.textContent = `Finish ${remaining} more, then submit to earn a ★`;
+      }
+      const submitBtn = document.getElementById('household-submit');
+      if (submitBtn) {
+        submitBtn.disabled = !!state.awarded;
+        submitBtn.textContent = state.awarded ? '★ Earned today' : 'Submit & Earn ★';
+      }
+      const hhStars = (LEW.getHouseholdStars && LEW.getHouseholdStars()) || 0;
+      const hhPerBox = (LEW.starsPerHouseholdMysteryBox && LEW.starsPerHouseholdMysteryBox()) || 10;
+      const remainder = hhStars % hhPerBox;
+      const toBox = remainder === 0 ? hhPerBox : hhPerBox - remainder;
+      householdProgressLabel.textContent = `${state.completed} / ${state.total} done · ${toBox} more household ${toBox === 1 ? "star" : "stars"} until a 🎁 mystery box`;
+    }
+
+    function awardHouseholdStarFlow() {
+      const already = HH.getToday();
+      if (already && already.awarded) return;
+      HH.markAwarded();
+      HH.bumpStarDays();
+      const total = (LEW.awardHouseholdStar && LEW.awardHouseholdStar({
+        label: `Household missions on ${HH.todayKey()}`,
+        date: HH.todayKey()
+      })) || 0;
+      if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+      const boxTriggered = (typeof LEW.maybeAwardHouseholdMysteryBox === 'function')
+        ? LEW.maybeAwardHouseholdMysteryBox(total) : false;
+      if (!boxTriggered) setTimeout(() => celebrateHouseholdStar(total), 250);
+      renderHousehold();
+    }
+
+    function celebrateHouseholdStar(total) {
+      const style = (LEW.getHouseholdStarStyle && LEW.getHouseholdStarStyle()) || {
+        color: "#8b5cf6", gradient: "linear-gradient(135deg,#8b5cf6,#7c3aed)", label: "Purple star"
+      };
+      const overlay = document.createElement('div');
+      overlay.className = 'star-award-overlay hh-award-overlay';
+      overlay.innerHTML = `
+        <div class="star-award-card">
+          <div class="hh-award-star" style="color:${style.color}">★</div>
+          <div class="star-award-title">${style.label} earned!</div>
+          <div class="star-award-sub">Total household stars: <b>${total}</b></div>
+          <button class="star-award-btn" style="background:${style.gradient}">Awesome!</button>
+        </div>`;
+      document.body.appendChild(overlay);
+      requestAnimationFrame(() => overlay.classList.add('show'));
+      const close = () => {
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.remove(), 350);
+      };
+      overlay.querySelector('.star-award-btn').addEventListener('click', close);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+      if (typeof window.launchConfetti === 'function') window.launchConfetti();
+    }
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    const REPEAT_LABEL = { once: 'Once', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
+    const cmModal = document.getElementById('cmModal');
+    const cmSubmit = document.getElementById('cmSubmit');
+
+    function showHub() {
+      householdView.style.display = 'none';
+      customView.style.display = 'none';
+      bankView.style.display = 'none';
+      tilesEl.style.display = '';
+      heroEl.style.display = '';
+      if (location.hash === '#bank') history.replaceState(null, '', location.pathname + location.search);
+    }
+
+    function openCustom() {
+      tilesEl.style.display = 'none';
+      heroEl.style.display = 'none';
+      householdView.style.display = 'none';
+      bankView.style.display = 'none';
+      customView.style.display = '';
+      renderCustom();
+    }
+
+    function openBank() {
+      tilesEl.style.display = 'none';
+      heroEl.style.display = 'none';
+      householdView.style.display = 'none';
+      customView.style.display = 'none';
+      bankView.style.display = '';
+      renderBank();
+    }
+
+    document.getElementById('custom-back').addEventListener('click', showHub);
+
+    function currencyList() {
+      return window.LEW_CURRENCIES || [{ code: 'USD', name: 'US Dollar', flag: '🇺🇸' }];
+    }
+    function findCurrency(code) {
+      return currencyList().find(c => c.code === code) || currencyList()[0];
+    }
+    function setCurrency(code) {
+      const c = findCurrency(code);
+      document.getElementById('cmCurrency').value = c.code;
+      document.getElementById('cmCurrencyFlag').textContent = c.flag || '🏳️';
+      document.getElementById('cmCurrencyLabel').textContent = c.code + ' — ' + c.name;
+      document.querySelectorAll('#cmCurrencyList .cm-currency-opt').forEach(btn => {
+        btn.setAttribute('aria-selected', btn.dataset.code === c.code ? 'true' : 'false');
+      });
+    }
+    function closeCurrencyMenu() {
+      const dd = document.getElementById('cmCurrencyDd');
+      dd.classList.remove('open');
+      document.getElementById('cmCurrencyBtn').setAttribute('aria-expanded', 'false');
+    }
+    function fillCurrencySelect() {
+      const listEl = document.getElementById('cmCurrencyList');
+      if (!listEl || listEl.dataset.ready) return;
+      const list = currencyList();
+      const popular = list.slice(0, 10);
+      const rest = list.slice(10).slice().sort((a, b) => a.name.localeCompare(b.name));
+      const renderGroup = (label, items) => {
+        const head = document.createElement('div');
+        head.className = 'cm-currency-head';
+        head.textContent = label;
+        listEl.appendChild(head);
+        items.forEach(c => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'cm-currency-opt';
+          btn.dataset.code = c.code;
+          btn.setAttribute('role', 'option');
+          btn.innerHTML = `<span class="cm-flag">${c.flag || ''}</span><span>${c.code} — ${c.name}</span>`;
+          btn.addEventListener('click', () => {
+            setCurrency(c.code);
+            closeCurrencyMenu();
+          });
+          listEl.appendChild(btn);
+        });
+      };
+      renderGroup('Popular', popular);
+      renderGroup('All currencies', rest);
+      listEl.dataset.ready = '1';
+      setCurrency('USD');
+    }
+
+    document.getElementById('cmCurrencyBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      fillCurrencySelect();
+      const dd = document.getElementById('cmCurrencyDd');
+      const open = !dd.classList.contains('open');
+      dd.classList.toggle('open', open);
+      document.getElementById('cmCurrencyBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) {
+        const search = document.getElementById('cmCurrencySearch');
+        search.value = '';
+        document.querySelectorAll('.cm-currency-opt, .cm-currency-head').forEach(el => { el.style.display = ''; });
+        setTimeout(() => search.focus(), 30);
+      }
+    });
+    document.getElementById('cmCurrencySearch').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      document.querySelectorAll('#cmCurrencyList .cm-currency-opt').forEach(btn => {
+        const text = btn.textContent.toLowerCase();
+        btn.style.display = !q || text.includes(q) ? '' : 'none';
+      });
+      document.querySelectorAll('#cmCurrencyList .cm-currency-head').forEach(head => {
+        let n = head.nextElementSibling;
+        let any = false;
+        while (n && !n.classList.contains('cm-currency-head')) {
+          if (n.classList.contains('cm-currency-opt') && n.style.display !== 'none') any = true;
+          n = n.nextElementSibling;
+        }
+        head.style.display = any ? '' : 'none';
+      });
+    });
+    document.getElementById('cmCurrencyDd').addEventListener('click', (e) => e.stopPropagation());
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#cmCurrencyDd')) closeCurrencyMenu();
+      if (!e.target.closest('#bkCurrencyDd')) closeBkCurrencyMenu();
+    });
+
+    let editingId = null;
+
+    function fillTaskForm(mission) {
+      fillCurrencySelect();
+      document.getElementById('cmErr').style.display = 'none';
+      closeCurrencyMenu();
+      if (mission) {
+        document.getElementById('cmModalTitle').textContent = 'Edit Task';
+        document.getElementById('cmModalHint').textContent = 'Change the name, amount, currency, or how often this repeats.';
+        document.getElementById('cmTitle').value = mission.title || '';
+        document.getElementById('cmAmount').value = ((mission.amountCents || 0) / 100).toFixed(2);
+        setCurrency(mission.currency || 'USD');
+        const r = document.querySelector(`input[name="cmRepeat"][value="${mission.repeat || 'daily'}"]`);
+        if (r) r.checked = true;
+      } else {
+        document.getElementById('cmModalTitle').textContent = 'Add Task';
+        document.getElementById('cmModalHint').textContent = 'Parents can save a custom mission with an amount and how often it repeats.';
+        document.getElementById('cmTitle').value = '';
+        document.getElementById('cmAmount').value = '';
+        setCurrency('USD');
+        const daily = document.querySelector('input[name="cmRepeat"][value="daily"]');
+        if (daily) daily.checked = true;
+      }
+    }
+
+    function openAddModal() {
+      editingId = null;
+      fillTaskForm(null);
+      cmModal.classList.add('open');
+      setTimeout(() => document.getElementById('cmTitle').focus(), 50);
+    }
+    function openEditModal(mission) {
+      editingId = mission.id;
+      fillTaskForm(mission);
+      cmModal.classList.add('open');
+      setTimeout(() => document.getElementById('cmTitle').focus(), 50);
+    }
+    function closeAddModal() {
+      editingId = null;
+      cmModal.classList.remove('open');
+    }
+    document.getElementById('cmAddOpen').addEventListener('click', openAddModal);
+    document.getElementById('cmModalClose').addEventListener('click', closeAddModal);
+    cmModal.addEventListener('click', (e) => { if (e.target === cmModal) closeAddModal(); });
+
+    function pendingChecked() {
+      return ((LEW.getCustomMissions && LEW.getCustomMissions()) || []).filter(m =>
+        LEW.isCustomMissionChecked(m) && !LEW.isCustomMissionDone(m)
+      );
+    }
+
+    function renderCustom() {
+      const list = document.getElementById('cmList');
+      const sub = document.getElementById('cmSub');
+      const missions = (LEW.getCustomMissions && LEW.getCustomMissions()) || [];
+      list.innerHTML = '';
+      if (!missions.length) {
+        list.innerHTML = '<li class="cm-empty">No custom tasks yet. Tap Add Task to create one.</li>';
+        sub.textContent = 'Parents add tasks. Kids check them off, then submit to earn money.';
+        cmSubmit.disabled = true;
+        return;
+      }
+      missions.forEach(mission => {
+        const approved = LEW.isCustomMissionDone(mission);
+        const checked = LEW.isCustomMissionChecked(mission);
+        const money = LEW.formatMoney(mission.amountCents, mission.currency || 'USD');
+        const li = document.createElement('li');
+        li.className = 'household-item' + (checked ? ' done' : '');
+        li.innerHTML = `
+          <button class="hh-check" aria-label="Toggle done" ${approved ? 'disabled' : ''}>${checked ? '✅' : ''}</button>
+          <div class="hh-body">
+            <div class="hh-title">${escapeHtml(mission.title)}</div>
+            <div class="hh-note">${escapeHtml(money)} · ${REPEAT_LABEL[mission.repeat] || mission.repeat}${approved ? ' · Earned this period' : ''}</div>
+          </div>
+          <div class="cm-row-actions">
+            <button type="button" class="cm-row-edit" aria-label="Edit task">✏️</button>
+            <button type="button" class="cm-row-del" aria-label="Delete task">✕</button>
+          </div>
+        `;
+        li.querySelector('.hh-check').addEventListener('click', () => {
+          if (approved) return;
+          LEW.toggleCustomMissionCheck(mission.id, !checked);
+          renderCustom();
+        });
+        li.querySelector('.cm-row-edit').addEventListener('click', () => openEditModal(mission));
+        li.querySelector('.cm-row-del').addEventListener('click', () => requestDelete(mission));
+        list.appendChild(li);
+      });
+      const pending = pendingChecked();
+      const remaining = missions.filter(m => !LEW.isCustomMissionDone(m)).length;
+      if (!remaining) sub.textContent = 'All due tasks are earned for this period.';
+      else if (pending.length) sub.textContent = `${pending.length} ready to submit. Ask a parent to approve.`;
+      else sub.textContent = 'Check off finished tasks, then submit to earn money.';
+      cmSubmit.disabled = pending.length === 0;
+      cmSubmit.textContent = pending.length ? 'Submit & Earn 💵' : 'Submit & Earn 💵';
+    }
+
+    function needApproval(opts) {
+      if (typeof LEW.openPictureApproval !== 'function') return;
+      LEW.openPictureApproval(opts);
+    }
+
+    cmSubmit.addEventListener('click', () => {
+      const pending = pendingChecked();
+      if (!pending.length) {
+        alert('Check off the tasks you finished, then submit to earn money.');
+        return;
+      }
+      const summary = pending.map(m => `${m.title} (${LEW.formatMoney(m.amountCents, m.currency || 'USD')})`).join(', ');
+      needApproval({
+        decideTitle: 'Approve these custom missions?',
+        decideHint: `Award money for: ${summary}`,
+        deniedHint: 'A parent asked you to try again. Check the tasks, then submit again.',
+        retryLabel: 'Retry',
+        approveLabel: 'Approve 💵',
+        onApprove() {
+          const result = LEW.approveCustomMissions(pending.map(m => m.id));
+          if (result && result.ok) {
+            if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+            celebrateMoney(result.earnedBy);
+            renderCustom();
+          }
+        }
+      });
+    });
+
+    function requestDelete(mission) {
+      needApproval({
+        decideTitle: 'Delete this custom mission?',
+        decideHint: `Remove “${mission.title}”? This stays gone until a parent adds it again.`,
+        deniedHint: 'The task was not deleted.',
+        retryLabel: 'Close',
+        approveLabel: 'Delete Task',
+        onApprove() {
+          LEW.removeCustomMission(mission.id);
+          if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+          renderCustom();
+        }
+      });
+    }
+
+    function missionErrorText(result) {
+      return result && result.reason === 'amount'
+        ? 'Enter an amount like 2.00.'
+        : result && result.reason === 'repeat'
+          ? 'Pick how often this repeats.'
+          : result && result.reason === 'currency'
+            ? 'Pick a currency.'
+            : result && result.reason === 'missing'
+              ? 'That task is no longer on the list.'
+              : 'Enter a task name.';
+    }
+    function readTaskForm() {
+      const repeatEl = document.querySelector('input[name="cmRepeat"]:checked');
+      return {
+        title: document.getElementById('cmTitle').value,
+        amount: document.getElementById('cmAmount').value,
+        currency: document.getElementById('cmCurrency').value,
+        repeat: repeatEl ? repeatEl.value : ''
+      };
+    }
+    function applySavedTask() {
+      closeAddModal();
+      if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+      renderCustom();
+    }
+
+    document.getElementById('cmAddForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const err = document.getElementById('cmErr');
+      const payload = readTaskForm();
+      if (editingId) {
+        if (!String(payload.title || '').trim() || String(payload.title).trim().length < 2) {
+          err.style.display = '';
+          err.textContent = missionErrorText({ reason: 'title' });
+          return;
+        }
+        if (!payload.amount || Number(payload.amount) <= 0) {
+          err.style.display = '';
+          err.textContent = missionErrorText({ reason: 'amount' });
+          return;
+        }
+        if (!payload.repeat) {
+          err.style.display = '';
+          err.textContent = missionErrorText({ reason: 'repeat' });
+          return;
+        }
+        if (!payload.currency) {
+          err.style.display = '';
+          err.textContent = missionErrorText({ reason: 'currency' });
+          return;
+        }
+        err.style.display = 'none';
+        const missionId = editingId;
+        needApproval({
+          decideTitle: 'Save changes to this task?',
+          decideHint: `Update “${String(payload.title || '').trim() || 'this task'}”?`,
+          deniedHint: 'The task was not changed.',
+          retryLabel: 'Close',
+          approveLabel: 'Save Changes',
+          onApprove() {
+            const result = LEW.updateCustomMission(missionId, payload);
+            if (!result || !result.ok) {
+              err.style.display = '';
+              err.textContent = missionErrorText(result);
+              return;
+            }
+            applySavedTask();
+          }
+        });
+        return;
+      }
+      const result = LEW.addCustomMission(payload);
+      if (!result || !result.ok) {
+        err.style.display = '';
+        err.textContent = missionErrorText(result);
+        return;
+      }
+      err.style.display = 'none';
+      applySavedTask();
+    });
+
+    function moneyLine(w) {
+      return (LEW.formatWalletMap && LEW.formatWalletMap(w || {})) || LEW.formatMoney(0, 'USD');
+    }
+
+    function renderBank() {
+      const br = (LEW.getWalletBreakdown && LEW.getWalletBreakdown()) || {
+        total: {}, missions: {}, giftCard: {}, cash: {}, history: []
+      };
+      document.getElementById('bankTotal').textContent = moneyLine(br.total);
+      const totalCents = Object.keys(br.total || {}).reduce((s, k) => s + (br.total[k] || 0), 0);
+      document.getElementById('bankTotal').classList.toggle('negative', totalCents < 0);
+      document.getElementById('bankSub').textContent = (br.history || []).length
+        ? 'Earned missions, gift cards, and cash in one place. Spending comes out of the total.'
+        : 'No money yet. Add a gift card or cash, or earn from custom missions.';
+      document.getElementById('bankPills').innerHTML = `
+        <div class="bank-pill"><span>📝 Missions</span><b>${escapeHtml(moneyLine(br.missions))}</b></div>
+        <div class="bank-pill"><span>🎁 Gift Cards</span><b>${escapeHtml(moneyLine(br.giftCard))}</b></div>
+        <div class="bank-pill"><span>💵 Cash</span><b>${escapeHtml(moneyLine(br.cash))}</b></div>
+        <div class="bank-pill spent"><span>🛒 Spent</span><b>${escapeHtml(moneyLine(br.spent))}</b></div>`;
+      const list = document.getElementById('bankList');
+      list.innerHTML = '';
+      const KIND = {
+        mission: { ico: '📝', label: 'Custom Mission' },
+        gift_card: { ico: '🎁', label: 'Gift Card' },
+        cash: { ico: '💵', label: 'Cash' },
+        spend: { ico: '🛒', label: 'Spending' }
+      };
+      if (!(br.history || []).length) {
+        const empty = document.createElement('li');
+        empty.className = 'cm-empty';
+        empty.textContent = 'Nothing in My Bank yet.';
+        list.appendChild(empty);
+        return;
+      }
+      br.history.forEach(item => {
+        const meta = KIND[item.kind] || KIND.cash;
+        const li = document.createElement('li');
+        li.className = 'household-item';
+        const money = (LEW.formatMoneyDelta && LEW.formatMoneyDelta(item.amountCents, item.currency || 'USD'))
+          || LEW.formatMoney(Math.abs(item.amountCents || 0), item.currency || 'USD');
+        const d = item.ts ? new Date(item.ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+        const canDelete = item.kind === 'gift_card' || item.kind === 'cash' || item.kind === 'spend';
+        li.innerHTML = `
+          <div class="bank-ico">${meta.ico}</div>
+          <div class="hh-body">
+            <div class="hh-title">${escapeHtml(item.title || meta.label)}</div>
+            <div class="hh-note">${escapeHtml(meta.label)}${d ? ' · ' + d : ''}</div>
+          </div>
+          <div class="bank-amt${item.kind === 'spend' ? ' spend' : ''}">${escapeHtml(money)}</div>
+          ${canDelete ? '<button type="button" class="cm-row-del" aria-label="Delete deposit">✕</button>' : ''}
+        `;
+        if (canDelete) {
+          li.querySelector('.cm-row-del').addEventListener('click', () => {
+            needApproval({
+              decideTitle: 'Remove this amount?',
+              decideHint: `Take “${item.title || meta.label}” (${money}) out of My Bank?`,
+              deniedHint: 'The amount was not removed.',
+              retryLabel: 'Close',
+              approveLabel: 'Remove',
+              onApprove() {
+                LEW.removeBankDeposit(item.id);
+                if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+                renderBank();
+              }
+            });
+          });
+        }
+        list.appendChild(li);
+      });
+    }
+
+    function setBkCurrency(code) {
+      const c = findCurrency(code);
+      document.getElementById('bkCurrency').value = c.code;
+      document.getElementById('bkCurrencyFlag').textContent = c.flag || '🏳️';
+      document.getElementById('bkCurrencyLabel').textContent = c.code + ' — ' + c.name;
+      document.querySelectorAll('#bkCurrencyList .cm-currency-opt').forEach(btn => {
+        btn.setAttribute('aria-selected', btn.dataset.code === c.code ? 'true' : 'false');
+      });
+    }
+    function closeBkCurrencyMenu() {
+      const dd = document.getElementById('bkCurrencyDd');
+      dd.classList.remove('open');
+      document.getElementById('bkCurrencyBtn').setAttribute('aria-expanded', 'false');
+    }
+    function fillBkCurrencySelect() {
+      const listEl = document.getElementById('bkCurrencyList');
+      if (!listEl || listEl.dataset.ready) return;
+      const list = currencyList();
+      const popular = list.slice(0, 10);
+      const rest = list.slice(10).slice().sort((a, b) => a.name.localeCompare(b.name));
+      const renderGroup = (label, items) => {
+        const head = document.createElement('div');
+        head.className = 'cm-currency-head';
+        head.textContent = label;
+        listEl.appendChild(head);
+        items.forEach(c => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'cm-currency-opt';
+          btn.dataset.code = c.code;
+          btn.setAttribute('role', 'option');
+          btn.innerHTML = `<span class="cm-flag">${c.flag || ''}</span><span>${c.code} — ${c.name}</span>`;
+          btn.addEventListener('click', () => {
+            setBkCurrency(c.code);
+            closeBkCurrencyMenu();
+          });
+          listEl.appendChild(btn);
+        });
+      };
+      renderGroup('Popular', popular);
+      renderGroup('All currencies', rest);
+      listEl.dataset.ready = '1';
+      setBkCurrency('USD');
+    }
+
+    const bkModal = document.getElementById('bkModal');
+    function openBankModal(kind) {
+      const isSpend = kind === 'spend';
+      const isGift = kind === 'gift_card';
+      document.getElementById('bkKind').value = isSpend ? 'spend' : (isGift ? 'gift_card' : 'cash');
+      document.getElementById('bkTypeField').style.display = isSpend ? 'none' : '';
+      if (!isSpend) {
+        document.querySelector(`input[name="bkKindRadio"][value="${isGift ? 'gift_card' : 'cash'}"]`).checked = true;
+      }
+      document.getElementById('bkModalTitle').textContent = isSpend ? 'Add Spending' : (isGift ? 'Add Gift Card' : 'Add Cash');
+      document.getElementById('bkModalHint').textContent = isSpend
+        ? 'Take money out of My Bank for something you bought. A parent will approve it.'
+        : isGift
+          ? 'Add a gift card amount to My Bank. A parent will approve it.'
+          : 'Add cash to My Bank. A parent will approve it.';
+      document.getElementById('bkNote').placeholder = isSpend ? 'e.g. Ice cream, toy' : 'e.g. Amazon, birthday money';
+      document.getElementById('bkAmount').value = '';
+      document.getElementById('bkNote').value = '';
+      document.getElementById('bkErr').style.display = 'none';
+      fillBkCurrencySelect();
+      setBkCurrency('USD');
+      closeBkCurrencyMenu();
+      bkModal.classList.add('open');
+      setTimeout(() => document.getElementById('bkAmount').focus(), 50);
+    }
+    function closeBankModal() { bkModal.classList.remove('open'); }
+
+    document.getElementById('bank-back').addEventListener('click', showHub);
+    document.getElementById('bankAddGift').addEventListener('click', () => openBankModal('gift_card'));
+    document.getElementById('bankAddCash').addEventListener('click', () => openBankModal('cash'));
+    document.getElementById('bankAddSpend').addEventListener('click', () => openBankModal('spend'));
+    document.getElementById('bkModalClose').addEventListener('click', closeBankModal);
+    bkModal.addEventListener('click', (e) => { if (e.target === bkModal) closeBankModal(); });
+    document.querySelectorAll('input[name="bkKindRadio"]').forEach(r => {
+      r.addEventListener('change', () => {
+        document.getElementById('bkKind').value = r.value;
+        document.getElementById('bkModalTitle').textContent = r.value === 'cash' ? 'Add Cash' : 'Add Gift Card';
+      });
+    });
+    document.getElementById('bkCurrencyBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      fillBkCurrencySelect();
+      const dd = document.getElementById('bkCurrencyDd');
+      const open = !dd.classList.contains('open');
+      dd.classList.toggle('open', open);
+      document.getElementById('bkCurrencyBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) {
+        const search = document.getElementById('bkCurrencySearch');
+        search.value = '';
+        document.querySelectorAll('#bkCurrencyList .cm-currency-opt, #bkCurrencyList .cm-currency-head').forEach(el => { el.style.display = ''; });
+        setTimeout(() => search.focus(), 30);
+      }
+    });
+    document.getElementById('bkCurrencySearch').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      document.querySelectorAll('#bkCurrencyList .cm-currency-opt').forEach(btn => {
+        const text = btn.textContent.toLowerCase();
+        btn.style.display = !q || text.includes(q) ? '' : 'none';
+      });
+      document.querySelectorAll('#bkCurrencyList .cm-currency-head').forEach(head => {
+        let n = head.nextElementSibling;
+        let any = false;
+        while (n && !n.classList.contains('cm-currency-head')) {
+          if (n.classList.contains('cm-currency-opt') && n.style.display !== 'none') any = true;
+          n = n.nextElementSibling;
+        }
+        head.style.display = any ? '' : 'none';
+      });
+    });
+    document.getElementById('bkCurrencyDd').addEventListener('click', (e) => e.stopPropagation());
+
+    document.getElementById('bkAddForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const err = document.getElementById('bkErr');
+      const payload = {
+        kind: document.getElementById('bkKind').value,
+        amount: document.getElementById('bkAmount').value,
+        currency: document.getElementById('bkCurrency').value,
+        note: document.getElementById('bkNote').value
+      };
+      if (!payload.amount || Number(payload.amount) <= 0) {
+        err.style.display = '';
+        err.textContent = 'Enter an amount like 5.00.';
+        return;
+      }
+      err.style.display = 'none';
+      const isSpend = payload.kind === 'spend';
+      const moneyLabel = LEW.formatMoney(Math.round(Number(payload.amount) * 100), payload.currency || 'USD');
+      needApproval({
+        decideTitle: isSpend ? 'Record this spending?' : payload.kind === 'cash' ? 'Add cash to My Bank?' : 'Add a gift card to My Bank?',
+        decideHint: isSpend ? `Subtract ${moneyLabel} from My Bank?` : `Add ${moneyLabel} as ${payload.kind === 'cash' ? 'cash' : 'gift card'}?`,
+        deniedHint: isSpend ? 'The spending was not recorded.' : 'The amount was not added.',
+        retryLabel: 'Close',
+        approveLabel: isSpend ? 'Subtract' : 'Add to Bank',
+        onApprove() {
+          const result = LEW.addBankDeposit(payload);
+          if (!result || !result.ok) {
+            err.style.display = '';
+            err.textContent = result && result.reason === 'currency'
+                ? 'Pick a currency.'
+                : 'Enter an amount like 5.00.';
+            return;
+          }
+          closeBankModal();
+          if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+          renderBank();
+        }
+      });
+    });
+
+    window.addEventListener('lew-open-bank', openBank);
+    if (location.hash === '#bank') openBank();
+
+    function celebrateMoney(earnedBy) {
+      const parts = Object.keys(earnedBy || {}).map(c => LEW.formatMoney(earnedBy[c], c));
+      const overlay = document.createElement('div');
+      overlay.className = 'star-award-overlay hh-award-overlay';
+      overlay.innerHTML = `
+        <div class="star-award-card">
+          <div class="hh-award-star">💵</div>
+          <div class="star-award-title">${parts.join(' · ') || 'Money'} earned!</div>
+          <div class="star-award-sub">Total pocket money: <b>${LEW.formatWallet()}</b></div>
+          <button class="star-award-btn" style="background:linear-gradient(135deg,#0f766e,#115e59)">Awesome!</button>
+        </div>`;
+      document.body.appendChild(overlay);
+      requestAnimationFrame(() => overlay.classList.add('show'));
+      const close = () => {
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.remove(), 350);
+      };
+      overlay.querySelector('.star-award-btn').addEventListener('click', close);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+      if (typeof window.launchConfetti === 'function') window.launchConfetti();
+    }
+  </script>
+</body>
+</html>
