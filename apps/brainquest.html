@@ -7,7 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../styles.css?v=23" />
+  <link rel="stylesheet" href="../styles.css?v=28" />
+  <link rel="icon" href="../favicon.svg?v=2" type="image/svg+xml" sizes="any" />
 </head>
 <body class="subpage theme-purple">
   <div class="float-sprites" aria-hidden="true">
@@ -31,11 +32,23 @@
       <button type="button" class="star-badge money-badge" id="moneyBadge" title="Pocket money earned" style="display:none;">
         <span class="reward-part money"><span class="money-ico">💵</span><span id="moneyCount">$0.00</span></span>
       </button>
-      <div class="user-chip subpage-chip" id="userChip" style="display:none;">
-        <span class="avatar" id="userAvatar">🙂</span>
-        <span class="who"><span id="userName">Explorer</span><small id="userMeta">Age —</small></span>
+      <div class="profile-menu" id="profileMenu" style="display:none;">
+        <button type="button" class="user-chip profile-trigger subpage-chip" id="userChip" aria-haspopup="true" aria-expanded="false">
+          <span class="avatar" id="userAvatar">🙂</span>
+          <span class="who">
+            <span id="userName">Explorer</span>
+            <small id="userMeta">Age —</small>
+          </span>
+          <span class="user-chip-caret" aria-hidden="true">▼</span>
+        </button>
+        <div class="profile-dropdown" id="profileDropdown">
+          <button type="button" id="themeMenuBtn">🎨 Themes</button>
+          <button type="button" id="approvalMenuBtn">🔐 Create Approval Code</button>
+          <button type="button" id="remindCodeBtn">📧 Remind Me My Code</button>
+          <button type="button" class="pd-signout" id="signoutBtn">Sign out</button>
+          <button type="button" class="pd-delete" id="deleteAccountBtn">Delete Account</button>
+        </div>
       </div>
-      <button class="signout-btn subpage-btn" id="signoutBtn" style="display:none;">Sign out</button>
     </div>
   </header>
 
@@ -85,7 +98,9 @@
   <script src="../supabase-config.js?v=2"></script>
   <script src="../auth.js?v=22"></script>
   <script src="../themes.js?v=1"></script>
-  <script src="../mystery-box.js?v=11"></script>
+  <script src="../approval.js?v=9"></script>
+  <script src="../profile-menu.js?v=1"></script>
+  <script src="../mystery-box.js?v=12"></script>
   <script src="question-bank.js?v=3"></script>
   <script>
     const _user = LEW.requireAuth({ loginUrl: '../login.html' });
@@ -93,17 +108,7 @@
       if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
     }
     if (_user) {
-      const p = _user.profile || {};
-      document.getElementById('userChip').style.display = '';
-      document.getElementById('signoutBtn').style.display = '';
-      document.getElementById('userName').textContent = p.name || 'Explorer';
-      document.getElementById('userMeta').textContent = `Age ${p.age}`;
-      const av = document.getElementById('userAvatar');
-      if (_user.picture) av.innerHTML = `<img src="${_user.picture}" alt="" />`;
-      else av.textContent = (p.name || 'E').trim().charAt(0).toUpperCase();
-      document.getElementById('signoutBtn').addEventListener('click', () => {
-        LEW.signOut(); window.location.replace('../login.html');
-      });
+      LEW.wireProfileMenu(_user);
       refreshStarBadge();
     }
   </script>
@@ -246,7 +251,12 @@
       currentSubject = subject;
       bank = LEW.QBank.pick(subject, QUIZ_LEN);
       if (!bank.length) {
-        alert('No questions available. Please try again.');
+        if (typeof LEW.showNotice === 'function') {
+          LEW.showNotice('No questions available. Please try again.', {
+            emoji: '🧠',
+            title: 'Oops!'
+          });
+        }
         return;
       }
       idx = 0; score = 0;

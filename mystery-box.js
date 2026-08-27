@@ -339,7 +339,10 @@
       <div class="mystery-card gift-list-card wallet-card" role="dialog" aria-labelledby="walletTitle">
         <div class="gift-list-head">
           <div>
-            <h2 class="mystery-title" id="walletTitle">💵 Pocket Money</h2>
+            <h2 class="mystery-title wallet-title" id="walletTitle">
+              <span class="wallet-title-ico" aria-hidden="true">💵</span>
+              <span class="wallet-title-text">Pocket Money</span>
+            </h2>
             <p class="mystery-sub">Breakdown of everything in My Bank</p>
           </div>
           <div class="gift-list-stats wallet-stats${negClass}">

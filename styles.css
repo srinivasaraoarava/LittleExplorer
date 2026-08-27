@@ -541,7 +541,7 @@ html, body {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 32px;
   max-width: 1200px; margin: 0 auto;
-  position: relative; z-index: 2;
+  position: relative; z-index: 20;
 }
 .back-btn {
   text-decoration: none;
@@ -1141,8 +1141,6 @@ html, body {
 
 .star-badge.money-badge {
   box-shadow: 0 6px 14px -6px rgba(15, 23, 42, 0.55);
-  outline: 2px solid #fff;
-  outline-offset: 0;
 }
 .star-badge.money-badge .reward-part.money {
   background: linear-gradient(135deg, #0f766e, #134e4a);
@@ -1571,10 +1569,12 @@ html, body {
 .user-chip .who small { display: block; color: var(--muted); font-weight: 500; font-size: 11.5px; margin-top: -2px; }
 .user-chip.subpage-chip {
   background: rgba(255,255,255,.22);
-  border: 1px solid rgba(255,255,255,.35);
+  border: 2px solid #fff;
   color: white;
 }
 .user-chip.subpage-chip .who small { color: rgba(255,255,255,.85); }
+.user-chip.subpage-chip .user-chip-caret { color: white; opacity: .9; }
+.subpage-top .profile-menu { z-index: 30; }
 
 .signout-btn {
   border: 1px solid rgba(0,0,0,.08);
@@ -2201,7 +2201,8 @@ html, body {
   gap: 0;
   margin: 0;
   padding: 0;
-  border: none;
+  border: 2px solid #fff;
+  box-sizing: border-box;
   background: transparent;
   appearance: none;
   -webkit-appearance: none;
@@ -2543,6 +2544,26 @@ html, body {
   flex-wrap: wrap;
 }
 .gift-list-head .mystery-title { margin: 0; font-size: 22px; text-align: left; }
+.wallet-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  -webkit-text-fill-color: unset;
+  color: #1e1b4b;
+}
+.wallet-title-ico {
+  font-size: 1.2em;
+  line-height: 1;
+  -webkit-text-fill-color: initial;
+  background: none;
+}
+.wallet-title-text {
+  background: linear-gradient(135deg, #d946ef, #ff9d00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 .gift-list-head .mystery-sub { margin: 4px 0 0; text-align: left; }
 .gift-list-stats {
   display: flex;
@@ -2664,6 +2685,7 @@ html, body {
   cursor: pointer;
   font: inherit;
   text-align: left;
+  margin: 0;
 }
 .user-chip-caret {
   font-size: 10px;
@@ -2802,11 +2824,26 @@ html, body {
 .approval-err {
   color: #b91c1c;
   background: #fee2e2;
+  border: 1px solid #fecaca;
   border-radius: 10px;
   padding: 8px 10px;
   font-size: 13px;
+  font-weight: 700;
   margin: 0 0 12px;
   display: none;
+}
+.approval-err.show { display: block; }
+.approval-pin.wrong {
+  border-color: #ef4444 !important;
+  background: #fef2f2;
+  animation: pin-shake .35s ease;
+}
+@keyframes pin-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
 }
 .approval-actions {
   display: flex;
@@ -2858,6 +2895,72 @@ html, body {
   opacity: 1;
   transform: translate(-50%, 0);
 }
+
+.lew-notice-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 15, 45, 0.55);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+.lew-notice-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.lew-notice-card {
+  background: linear-gradient(180deg, #ffffff, #f5f3ff);
+  padding: 32px 28px 24px;
+  border-radius: 28px;
+  text-align: center;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.45);
+  max-width: 360px;
+  width: min(360px, 100%);
+  transform: scale(0.9);
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  border: 2px solid #ede9fe;
+  font-family: 'Fredoka', sans-serif;
+}
+.lew-notice-overlay.show .lew-notice-card { transform: scale(1); }
+.lew-notice-emoji {
+  font-size: 52px;
+  line-height: 1;
+  filter: drop-shadow(0 6px 10px rgba(124, 58, 237, .2));
+}
+.lew-notice-title {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 26px;
+  color: #1e1b4b;
+  margin: 12px 0 8px;
+}
+.lew-notice-body {
+  color: #56637a;
+  font-size: 16px;
+  line-height: 1.45;
+  margin: 0;
+  font-weight: 500;
+}
+.lew-notice-btn {
+  margin-top: 20px;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 10px 22px -10px rgba(124, 58, 237, 0.7);
+  transition: transform .15s ease;
+}
+.lew-notice-btn:hover { transform: translateY(-2px) scale(1.02); }
 
 /* ====================================================
    Profile themes

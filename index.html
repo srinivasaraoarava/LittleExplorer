@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=23" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css?v=28" />
+  <link rel="icon" href="favicon.svg?v=2" type="image/svg+xml" sizes="any" />
 </head>
 <body>
   <!-- Floating decorative blobs -->
@@ -259,146 +259,20 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js?v=2"></script>
   <script src="auth.js?v=22"></script>
-  <script src="mystery-box.js?v=11"></script>
-  <script src="approval.js?v=7"></script>
+  <script src="mystery-box.js?v=12"></script>
+  <script src="approval.js?v=9"></script>
   <script src="themes.js?v=1"></script>
+  <script src="profile-menu.js?v=1"></script>
   <script>
     const user = LEW.requireAuth({ loginUrl: 'login.html' });
     if (user) {
       const p = user.profile || {};
-      const menu = document.getElementById('profileMenu');
-      const chip = document.getElementById('userChip');
-      const btn = document.getElementById('signoutBtn');
-      const nameEl = document.getElementById('userName');
-      const metaEl = document.getElementById('userMeta');
-      const avatarEl = document.getElementById('userAvatar');
       const greet = document.getElementById('heroGreeting');
       const heroSub = document.getElementById('heroSub');
-      const approvalMenuBtn = document.getElementById('approvalMenuBtn');
-      const remindCodeBtn = document.getElementById('remindCodeBtn');
-      const themeMenuBtn = document.getElementById('themeMenuBtn');
-
-      menu.style.display = '';
       if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
-      nameEl.textContent = p.name || 'Explorer';
-      const genderLabel = p.gender === 'boy' ? 'Boy' : p.gender === 'girl' ? 'Girl' : 'Explorer';
-      metaEl.textContent = `Age ${p.age} • ${genderLabel}`;
-      if (user.picture) {
-        avatarEl.innerHTML = `<img src="${user.picture}" alt="" />`;
-      } else {
-        avatarEl.textContent = (p.name || 'E').trim().charAt(0).toUpperCase();
-      }
+      LEW.wireProfileMenu(user);
       greet.textContent = `${(p.name || 'Explorer').trim()}'s`;
       heroSub.textContent = `Welcome back! Pick a world and let's explore. ✨`;
-
-      function syncApprovalLabel() {
-        approvalMenuBtn.textContent = (LEW.hasApprovalCode && LEW.hasApprovalCode())
-          ? '🔐 Change Approval Code'
-          : '🔐 Create Approval Code';
-      }
-      syncApprovalLabel();
-      chip.addEventListener('click', (e) => {
-        e.stopPropagation();
-        syncApprovalLabel();
-        const open = menu.classList.toggle('open');
-        chip.setAttribute('aria-expanded', open ? 'true' : 'false');
-      });
-      document.addEventListener('click', () => {
-        menu.classList.remove('open');
-        chip.setAttribute('aria-expanded', 'false');
-      });
-      approvalMenuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        menu.classList.remove('open');
-        if (typeof LEW.openApprovalSettings === 'function') LEW.openApprovalSettings();
-      });
-      remindCodeBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        menu.classList.remove('open');
-        chip.setAttribute('aria-expanded', 'false');
-        const toast = (msg) => {
-          if (typeof LEW.showToast === 'function') LEW.showToast(msg);
-        };
-        remindCodeBtn.disabled = true;
-        toast('Sending your approval code…');
-        let sent = { ok: false, reason: 'none' };
-        try {
-          sent = await LEW.remindApprovalCode();
-        } catch (err) {
-          console.error(err);
-        }
-        remindCodeBtn.disabled = false;
-        const dest = (sent && sent.email) || (LEW.getApprovalEmail && LEW.getApprovalEmail()) || (user && user.email) || '';
-        if (sent && sent.ok && sent.method === 'confirm') {
-          toast('Check your inbox to confirm the first email, then tap Remind Me My Code again.');
-        } else if (sent && sent.ok) {
-          toast('The approval code was emailed to ' + dest + '. Check inbox and spam.');
-        } else if (sent && sent.reason === 'none') {
-          toast('No approval code yet. Tap Create Approval Code first.');
-        } else if (sent && sent.reason === 'db-error') {
-          toast('Could not read the code from the database. Try again.');
-        } else {
-          toast('Could not email the approval code. Try again.');
-        }
-      });
-      themeMenuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        menu.classList.remove('open');
-        if (typeof LEW.openThemePicker === 'function') LEW.openThemePicker();
-      });
-      document.getElementById('profileDropdown').addEventListener('click', (e) => e.stopPropagation());
-
-      btn.addEventListener('click', () => {
-        LEW.signOut();
-        window.location.replace('login.html');
-      });
-
-      const deleteOverlay = document.getElementById('deleteAccountOverlay');
-      const deletePinWrap = document.getElementById('deletePinWrap');
-      const deletePin = document.getElementById('deletePin');
-      const deleteErr = document.getElementById('deleteErr');
-      document.getElementById('deleteAccountBtn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        menu.classList.remove('open');
-        chip.setAttribute('aria-expanded', 'false');
-        deleteErr.style.display = 'none';
-        deletePin.value = '';
-        const needPin = !!(LEW.hasApprovalCode && LEW.hasApprovalCode());
-        deletePinWrap.style.display = needPin ? '' : 'none';
-        deleteOverlay.classList.add('open');
-        if (needPin) setTimeout(() => deletePin.focus(), 50);
-      });
-      document.getElementById('deleteCancel').addEventListener('click', () => {
-        deleteOverlay.classList.remove('open');
-      });
-      deleteOverlay.addEventListener('click', (e) => {
-        if (e.target === deleteOverlay) deleteOverlay.classList.remove('open');
-      });
-      deletePin.addEventListener('input', (e) => {
-        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
-      });
-      document.getElementById('deleteConfirm').addEventListener('click', async () => {
-        const needPin = !!(LEW.hasApprovalCode && LEW.hasApprovalCode());
-        if (needPin && !(LEW.verifyApprovalCode && LEW.verifyApprovalCode(deletePin.value))) {
-          deleteErr.textContent = 'That code is not right. Ask a parent to try again.';
-          deleteErr.style.display = '';
-          return;
-        }
-        const confirmBtn = document.getElementById('deleteConfirm');
-        confirmBtn.disabled = true;
-        confirmBtn.textContent = 'Deleting…';
-        const result = await LEW.deleteAccount();
-        if (!result || !result.ok) {
-          confirmBtn.disabled = false;
-          confirmBtn.textContent = 'Delete Account';
-          deleteErr.textContent = result && result.reason === 'db-error'
-            ? 'Could not delete the account from the database. Try again.'
-            : 'Could not delete the account. Try again.';
-          deleteErr.style.display = '';
-          return;
-        }
-        window.location.replace('login.html');
-      });
 
       // Welcome toast — only right after a fresh signup
       const flag = sessionStorage.getItem('lew_welcome_flag');

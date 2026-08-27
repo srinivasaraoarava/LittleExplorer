@@ -102,12 +102,13 @@
   function openOverlay() {
     ensure();
     document.getElementById("approvalOverlay").classList.add("open");
-    document.getElementById("apCreateErr").style.display = "none";
-    document.getElementById("apEnterErr").style.display = "none";
+    document.getElementById("apCreateErr").classList.remove("show");
+    document.getElementById("apEnterErr").classList.remove("show");
     document.getElementById("apEnterErr").style.color = "";
     document.getElementById("apEnterErr").style.background = "";
     document.getElementById("apCurrent").value = "";
     document.getElementById("apPin").value = "";
+    document.getElementById("apPin").classList.remove("wrong");
   }
 
   function setText(id, text) {
@@ -164,9 +165,9 @@
   async function sendAndShow(result, changed) {
     const err = document.getElementById("apCreateErr");
     if (!result || !result.ok) {
-      err.style.display = "";
+      err.classList.add("show");
       err.textContent = result && result.reason === "wrong-code"
-        ? "That current code isn't right."
+        ? "The code is wrong. Ask a parent to try again."
         : result && result.reason === "invalid-email"
           ? "Please enter a valid parent email."
           : "Couldn't save the code. Try again.";
@@ -189,42 +190,70 @@
     btn.disabled = false;
     btn.textContent = prev;
     if (!sent.ok) {
-      err.style.display = "";
+      err.classList.add("show");
       err.textContent = "Email didn't send. Check your internet and try again.";
       return;
     }
-    err.style.display = "none";
+    err.classList.remove("show");
     const toastMsg = sent.method === "confirm"
       ? "Check your inbox to confirm, then resend."
       : "The code has been sent.";
     showToast(toastMsg);
     if (mode === "submit") {
       document.getElementById("apPin").value = "";
-      document.getElementById("apEnterErr").style.display = "none";
+      document.getElementById("apPin").classList.remove("wrong");
+      document.getElementById("apEnterErr").classList.remove("show");
       showPanel("apEnter");
     } else {
       close();
     }
   }
 
+  function showEnterErr(message) {
+    const err = document.getElementById("apEnterErr");
+    const pin = document.getElementById("apPin");
+    err.classList.add("show");
+    err.style.color = "#b91c1c";
+    err.style.background = "#fee2e2";
+    err.textContent = message;
+    pin.classList.remove("wrong");
+    void pin.offsetWidth;
+    pin.classList.add("wrong");
+    pin.setAttribute("aria-invalid", "true");
+    pin.focus();
+    pin.select();
+  }
+
+  function clearEnterErr() {
+    const err = document.getElementById("apEnterErr");
+    const pin = document.getElementById("apPin");
+    err.classList.remove("show");
+    err.style.color = "";
+    err.style.background = "";
+    pin.classList.remove("wrong");
+    pin.removeAttribute("aria-invalid");
+  }
+
   function tryUnlock() {
     const pin = document.getElementById("apPin").value;
-    const err = document.getElementById("apEnterErr");
+    if (!String(pin || "").trim()) {
+      showEnterErr("Enter the 6-digit code.");
+      return;
+    }
     if (!LEW.verifyApprovalCode(pin)) {
-      err.style.display = "";
-      err.style.color = "";
-      err.style.background = "";
-      err.textContent = "That code isn't right. Ask a parent to try again.";
+      showEnterErr("The code is wrong.");
       return;
     }
     document.getElementById("apPin").value = "";
-    err.style.display = "none";
+    clearEnterErr();
     showPanel("apDecide");
   }
 
   function wire() {
     document.getElementById("apPin").addEventListener("input", e => {
       e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
+      clearEnterErr();
+      if (e.target.value.length === 6) tryUnlock();
     });
     document.getElementById("apPin").addEventListener("keydown", e => {
       if (e.key === "Enter") tryUnlock();
@@ -260,9 +289,9 @@
         setupCreateForm(false);
         return;
       }
-      err.style.display = "none";
+      clearEnterErr();
       const sent = await LEW.sendApprovalCodeEmail({ email: dest, changed: false });
-      err.style.display = "";
+      err.classList.add("show");
       err.style.color = sent.ok ? "#166534" : "#b91c1c";
       err.style.background = sent.ok ? "#dcfce7" : "#fee2e2";
       err.textContent = sent.ok
@@ -275,7 +304,7 @@
     document.getElementById("apCreatedNext").addEventListener("click", () => {
       if (mode === "submit") {
         document.getElementById("apPin").value = "";
-        document.getElementById("apEnterErr").style.display = "none";
+        clearEnterErr();
         showPanel("apEnter");
       } else close();
     });
@@ -296,8 +325,55 @@
     document.getElementById("apRetry").addEventListener("click", close);
   }
 
+  function closeNotice() {
+    const overlay = document.getElementById("lewNoticeOverlay");
+    if (!overlay) return;
+    overlay.classList.remove("show");
+  }
+
+  function showNotice(message, opts) {
+    opts = opts || {};
+    if (message && typeof message === "object") {
+      opts = message;
+      message = opts.message || "";
+    }
+    let overlay = document.getElementById("lewNoticeOverlay");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "lewNoticeOverlay";
+      overlay.className = "lew-notice-overlay";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.innerHTML = `
+        <div class="lew-notice-card">
+          <div class="lew-notice-emoji" aria-hidden="true">✨</div>
+          <div class="lew-notice-title"></div>
+          <p class="lew-notice-body"></p>
+          <button type="button" class="lew-notice-btn">Got it!</button>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) closeNotice();
+      });
+      overlay.querySelector(".lew-notice-btn").addEventListener("click", closeNotice);
+    }
+    overlay.querySelector(".lew-notice-emoji").textContent = opts.emoji || "✨";
+    overlay.querySelector(".lew-notice-title").textContent = opts.title || "Hold On!";
+    overlay.querySelector(".lew-notice-body").textContent = message || "";
+    overlay.querySelector(".lew-notice-btn").textContent = opts.okLabel || "Got it!";
+    overlay.classList.add("show");
+    setTimeout(() => overlay.querySelector(".lew-notice-btn").focus(), 40);
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const overlay = document.getElementById("lewNoticeOverlay");
+    if (overlay && overlay.classList.contains("show")) closeNotice();
+  });
+
   window.LEW = window.LEW || {};
   window.LEW.showToast = showToast;
+  window.LEW.showNotice = showNotice;
   window.LEW.openApprovalSettings = function () {
     mode = "manage";
     onApprove = null;
