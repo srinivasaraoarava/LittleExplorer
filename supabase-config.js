@@ -26,9 +26,20 @@ window.LEW_DB = (function () {
     return data || null;
   }
 
+  async function deleteProfile(email) {
+    const c = client();
+    if (!c) return false;
+    const { data, error } = await c.rpc("delete_explorer_profile", {
+      p_email: String(email || "").trim().toLowerCase()
+    });
+    if (error) throw error;
+    return !!data;
+  }
+
   return {
     enabled: function () { return !!(URL && ANON_KEY); },
     getProfile,
-    upsertProfile
+    upsertProfile,
+    deleteProfile
   };
 })();

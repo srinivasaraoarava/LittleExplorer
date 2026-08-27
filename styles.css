@@ -2272,6 +2272,7 @@ html, body {
 }
 .profile-dropdown button:hover { background: #f5f3ff; }
 .profile-dropdown .pd-signout { color: #b91c1c; }
+.profile-dropdown .pd-delete { color: #b91c1c; font-weight: 800; }
 
 /* Parent approval modal */
 .approval-overlay {

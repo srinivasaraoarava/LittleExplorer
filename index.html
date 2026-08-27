@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=11" />
+  <link rel="stylesheet" href="styles.css?v=12" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
@@ -58,6 +58,7 @@
           <button type="button" id="approvalMenuBtn">🔐 Create Approval Code</button>
           <button type="button" id="remindCodeBtn">📧 Remind Me My Code</button>
           <button type="button" class="pd-signout" id="signoutBtn">Sign out</button>
+          <button type="button" class="pd-delete" id="deleteAccountBtn">Delete Account</button>
         </div>
       </div>
     </div>
@@ -195,6 +196,23 @@
     </footer>
   </main>
 
+  <div class="approval-overlay" id="deleteAccountOverlay" role="dialog" aria-modal="true">
+    <div class="approval-card">
+      <div class="approval-kicker">Account</div>
+      <h2>Delete Account</h2>
+      <p>This permanently removes the kid's name, age, stars, and approval code from the database. This cannot be undone.</p>
+      <div class="approval-field" id="deletePinWrap" style="display:none;">
+        <label for="deletePin">Parent approval code</label>
+        <input id="deletePin" class="approval-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••••" />
+      </div>
+      <div class="approval-err" id="deleteErr" style="display:none;"></div>
+      <div class="approval-actions">
+        <button type="button" class="approval-btn" id="deleteCancel">Cancel</button>
+        <button type="button" class="approval-btn no" id="deleteConfirm">Delete Account</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Welcome toast (shown once, right after sign-up) -->
   <div class="welcome-toast" id="welcomeToast" style="display:none;">
     <div class="wt-emoji">🎉</div>
@@ -212,8 +230,8 @@
   </button>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=1"></script>
-  <script src="auth.js?v=14"></script>
+  <script src="supabase-config.js?v=2"></script>
+  <script src="auth.js?v=15"></script>
   <script src="mystery-box.js?v=5"></script>
   <script src="approval.js?v=7"></script>
   <script src="themes.js?v=1"></script>
@@ -305,6 +323,53 @@
 
       btn.addEventListener('click', () => {
         LEW.signOut();
+        window.location.replace('login.html');
+      });
+
+      const deleteOverlay = document.getElementById('deleteAccountOverlay');
+      const deletePinWrap = document.getElementById('deletePinWrap');
+      const deletePin = document.getElementById('deletePin');
+      const deleteErr = document.getElementById('deleteErr');
+      document.getElementById('deleteAccountBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        menu.classList.remove('open');
+        chip.setAttribute('aria-expanded', 'false');
+        deleteErr.style.display = 'none';
+        deletePin.value = '';
+        const needPin = !!(LEW.hasApprovalCode && LEW.hasApprovalCode());
+        deletePinWrap.style.display = needPin ? '' : 'none';
+        deleteOverlay.classList.add('open');
+        if (needPin) setTimeout(() => deletePin.focus(), 50);
+      });
+      document.getElementById('deleteCancel').addEventListener('click', () => {
+        deleteOverlay.classList.remove('open');
+      });
+      deleteOverlay.addEventListener('click', (e) => {
+        if (e.target === deleteOverlay) deleteOverlay.classList.remove('open');
+      });
+      deletePin.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+      });
+      document.getElementById('deleteConfirm').addEventListener('click', async () => {
+        const needPin = !!(LEW.hasApprovalCode && LEW.hasApprovalCode());
+        if (needPin && !(LEW.verifyApprovalCode && LEW.verifyApprovalCode(deletePin.value))) {
+          deleteErr.textContent = 'That code is not right. Ask a parent to try again.';
+          deleteErr.style.display = '';
+          return;
+        }
+        const confirmBtn = document.getElementById('deleteConfirm');
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Deleting…';
+        const result = await LEW.deleteAccount();
+        if (!result || !result.ok) {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Delete Account';
+          deleteErr.textContent = result && result.reason === 'db-error'
+            ? 'Could not delete the account from the database. Try again.'
+            : 'Could not delete the account. Try again.';
+          deleteErr.style.display = '';
+          return;
+        }
         window.location.replace('login.html');
       });
 

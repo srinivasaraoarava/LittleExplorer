@@ -161,6 +161,39 @@ const LEW = (() => {
 
   function signOut() { setCurrentId(null); }
 
+  function clearLocalUserData(id, email) {
+    const users = loadUsers();
+    if (id) delete users[id];
+    saveUsers(users);
+    if (email) removeKnownAccount(email);
+    const prefixes = id ? ["lew_household_" + id + "_", "lew_seen_" + id + "_"] : [];
+    const drop = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && prefixes.some(p => k.startsWith(p))) drop.push(k);
+    }
+    drop.forEach(k => localStorage.removeItem(k));
+    setCurrentId(null);
+  }
+
+  async function deleteAccount() {
+    const user = getCurrentUser();
+    if (!user || !user.email) return { ok: false, reason: "no-user" };
+    const email = user.email;
+    const id = user.id;
+    const db = typeof window !== "undefined" ? window.LEW_DB : null;
+    if (db && db.deleteProfile && db.enabled()) {
+      try {
+        await db.deleteProfile(email);
+      } catch (err) {
+        console.error("cloud delete failed", err);
+        return { ok: false, reason: "db-error" };
+      }
+    }
+    clearLocalUserData(id, email);
+    return { ok: true };
+  }
+
   // ---------- stars / achievements ----------
   function awardStar(meta) {
     const id = getCurrentId();
@@ -821,6 +854,7 @@ const LEW = (() => {
     // sign-in flow
     signInAs,
     signOut,
+    deleteAccount,
     listKnownAccounts,
     removeKnownAccount,
     // user + profile

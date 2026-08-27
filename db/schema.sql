@@ -134,3 +134,21 @@ $$;
 
 grant execute on function public.get_explorer_profile(text) to anon, authenticated;
 grant execute on function public.upsert_explorer_profile(jsonb) to anon, authenticated;
+
+create or replace function public.delete_explorer_profile(p_email text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_email is null or length(trim(p_email)) = 0 then
+    return false;
+  end if;
+  delete from public.explorer_profiles
+  where email = lower(trim(p_email));
+  return found;
+end;
+$$;
+
+grant execute on function public.delete_explorer_profile(text) to anon, authenticated;
