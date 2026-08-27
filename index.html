@@ -213,7 +213,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js?v=1"></script>
-  <script src="auth.js?v=12"></script>
+  <script src="auth.js?v=13"></script>
   <script src="mystery-box.js?v=5"></script>
   <script src="approval.js?v=6"></script>
   <script src="themes.js?v=1"></script>
@@ -286,9 +286,13 @@
         sessionStorage.removeItem('lew_welcome_email');
         const toast = document.getElementById('welcomeToast');
         document.getElementById('wtTitle').textContent = `Welcome, ${p.name}! 🚀`;
-        document.getElementById('wtSub').innerHTML = flag === 'sent'
-          ? `We've sent a welcome email to <b>${email}</b>. Check your inbox (and spam folder)! 💌`
-          : `Your account is ready. Pick a world below and let's explore! ✨`;
+        const safeEmail = String(email || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        document.getElementById('wtSub').innerHTML =
+          flag === 'sent'
+            ? `A 6-digit parent approval code was emailed to <b>${safeEmail}</b>. Check inbox and spam — it is not shown on this screen.`
+            : flag === 'confirm'
+              ? `Check <b>${safeEmail}</b> and confirm the first email, then we can send the 6-digit approval code.`
+              : `Your account is ready. We couldn't email the approval code yet — open the profile menu and tap Create approval code.`;
         toast.style.display = '';
         requestAnimationFrame(() => toast.classList.add('show'));
         const dismiss = () => {
@@ -296,7 +300,7 @@
           setTimeout(() => (toast.style.display = 'none'), 400);
         };
         document.getElementById('wtClose').addEventListener('click', dismiss);
-        setTimeout(dismiss, 8000);
+        setTimeout(dismiss, 12000);
       }
     }
   </script>

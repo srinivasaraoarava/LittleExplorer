@@ -150,7 +150,7 @@
   </div>
 
   <script src="supabase-config.js?v=1"></script>
-  <script src="auth.js?v=12"></script>
+  <script src="auth.js?v=13"></script>
   <script src="themes.js?v=1"></script>
   <script>
     // ---------- helpers ----------
@@ -258,6 +258,10 @@
         theme: (LEW.getThemeId && LEW.getThemeId()) || 'explorer'
       });
 
+      const user = LEW.getCurrentUser();
+      const dest = (user && user.email) || '';
+      const created = LEW.createApprovalCode(dest);
+
       submitBtn.disabled = true;
       submitBtn.textContent = 'Saving your profile…';
       if (LEW.persistCloudNow) {
@@ -267,18 +271,20 @@
         ]);
       }
 
-      // Send welcome email (fire-and-await, but never block user longer than ~4s)
-      submitBtn.textContent = LEW.isEmailConfigured()
-        ? 'Sending welcome email…'
-        : 'Setting things up…';
+      submitBtn.textContent = 'Emailing your approval code…';
+      let sent = { ok: false, reason: 'invalid' };
+      if (created && created.ok) {
+        sent = await Promise.race([
+          LEW.sendApprovalCodeEmail({ email: dest, changed: false }),
+          new Promise(res => setTimeout(() => res({ ok: false, reason: 'timeout' }), 8000))
+        ]);
+      }
 
-      const user = LEW.getCurrentUser();
-      const emailPromise = LEW.sendWelcomeEmail(user);
-      const timeoutPromise = new Promise(res => setTimeout(() => res({ ok: false, reason: 'timeout' }), 4500));
-      const result = await Promise.race([emailPromise, timeoutPromise]);
-
-      sessionStorage.setItem('lew_welcome_flag', result.ok ? 'sent' : 'skipped');
-      sessionStorage.setItem('lew_welcome_email', (user && user.email) || '');
+      sessionStorage.setItem(
+        'lew_welcome_flag',
+        sent && sent.ok ? (sent.method === 'confirm' ? 'confirm' : 'sent') : 'failed'
+      );
+      sessionStorage.setItem('lew_welcome_email', dest);
 
       submitBtn.textContent = originalLabel;
       submitBtn.disabled = false;
