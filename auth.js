@@ -46,6 +46,95 @@ const LEW = (() => {
     return users[user.id];
   }
 
+  function asList(v) { return Array.isArray(v) ? v : []; }
+  function asMap(v) { return v && typeof v === "object" && !Array.isArray(v) ? v : {}; }
+
+  function snapshotForCloud(user) {
+    const p = (user && user.profile) || {};
+    return {
+      email: (user && user.email) || "",
+      google_name: (user && user.googleName) || "",
+      kid_name: p.name || "",
+      age: p.age || null,
+      gender: p.gender || "",
+      theme: p.theme || "explorer",
+      approval_code: p.approvalCode || "",
+      approval_email: p.approvalEmail || "",
+      stars: p.stars || 0,
+      household_stars: p.householdStars || 0,
+      achievements: asList(p.achievements),
+      household_achievements: asList(p.householdAchievements),
+      gifts: asList(p.gifts),
+      puzzle_plays: asMap(p.puzzlePlays),
+      puzzle_recent: asMap(p.puzzleRecent),
+      puzzle_mix_seed: p.puzzleMixSeed || 0,
+      puzzle_mix_index: p.puzzleMixIndex || 0
+    };
+  }
+
+  function mergeCloudProfile(localUser, remote) {
+    const lp = (localUser && localUser.profile) || {};
+    const remoteAch = asList(remote.achievements);
+    const localAch = asList(lp.achievements);
+    const remoteHh = asList(remote.household_achievements);
+    const localHh = asList(lp.householdAchievements);
+    const remoteGifts = asList(remote.gifts);
+    const localGifts = asList(lp.gifts);
+    return {
+      name: remote.kid_name || lp.name || "",
+      age: remote.age || lp.age || null,
+      gender: remote.gender || lp.gender || "",
+      theme: remote.theme || lp.theme || "explorer",
+      approvalCode: remote.approval_code || lp.approvalCode || "",
+      approvalEmail: remote.approval_email || lp.approvalEmail || "",
+      stars: Math.max(lp.stars || 0, remote.stars || 0),
+      householdStars: Math.max(lp.householdStars || 0, remote.household_stars || 0),
+      achievements: remoteAch.length >= localAch.length ? remoteAch : localAch,
+      householdAchievements: remoteHh.length >= localHh.length ? remoteHh : localHh,
+      gifts: remoteGifts.length >= localGifts.length ? remoteGifts : localGifts,
+      puzzlePlays: Object.keys(asMap(remote.puzzle_plays)).length ? asMap(remote.puzzle_plays) : asMap(lp.puzzlePlays),
+      puzzleRecent: Object.keys(asMap(remote.puzzle_recent)).length ? asMap(remote.puzzle_recent) : asMap(lp.puzzleRecent),
+      puzzleMixSeed: remote.puzzle_mix_seed || lp.puzzleMixSeed || 0,
+      puzzleMixIndex: remote.puzzle_mix_index || lp.puzzleMixIndex || 0
+    };
+  }
+
+  function persistCloudNow() {
+    const user = getCurrentUser();
+    const db = typeof window !== "undefined" ? window.LEW_DB : null;
+    if (!user || !user.email || !db || !db.upsertProfile || !db.enabled()) {
+      return Promise.resolve(null);
+    }
+    return db.upsertProfile(snapshotForCloud(user)).catch(err => {
+      console.error("cloud save failed", err);
+      return null;
+    });
+  }
+
+  async function hydrateFromCloud() {
+    const user = getCurrentUser();
+    const db = typeof window !== "undefined" ? window.LEW_DB : null;
+    if (!user || !user.email || !db || !db.getProfile || !db.enabled()) return user;
+    try {
+      const remote = await db.getProfile(user.email);
+      if (remote && (remote.kid_name || remote.stars || remote.household_stars || remote.approval_code)) {
+        upsertUser({
+          id: user.id,
+          email: user.email,
+          googleName: remote.google_name || user.googleName,
+          picture: user.picture || "",
+          profile: mergeCloudProfile(user, remote)
+        });
+        await persistCloudNow();
+      } else if (user.profile && (user.profile.name || user.profile.stars || user.profile.approvalCode)) {
+        await persistCloudNow();
+      }
+    } catch (err) {
+      console.error("cloud load failed", err);
+    }
+    return getCurrentUser();
+  }
+
   function saveProfile(profile) {
     const id = getCurrentId();
     if (!id) return null;
@@ -54,6 +143,7 @@ const LEW = (() => {
     users[id].profile = { ...(users[id].profile || {}), ...profile };
     users[id].updatedAt = Date.now();
     saveUsers(users);
+    persistCloudNow();
     return users[id];
   }
 
@@ -92,6 +182,7 @@ const LEW = (() => {
     users[id].profile = p;
     users[id].updatedAt = Date.now();
     saveUsers(users);
+    persistCloudNow();
     return p.stars;
   }
   function getStars() {
@@ -139,6 +230,7 @@ const LEW = (() => {
     users[id].profile = p;
     users[id].updatedAt = Date.now();
     saveUsers(users);
+    persistCloudNow();
     return p.householdStars;
   }
 
@@ -163,6 +255,7 @@ const LEW = (() => {
     users[id].profile = p;
     users[id].updatedAt = Date.now();
     saveUsers(users);
+    persistCloudNow();
     return 0;
   }
 
@@ -309,6 +402,7 @@ const LEW = (() => {
     users[id].profile = p;
     users[id].updatedAt = Date.now();
     saveUsers(users);
+    persistCloudNow();
     return gift;
   }
 
@@ -327,6 +421,7 @@ const LEW = (() => {
     if (g) g.claimed = !!claimed;
     users[id].updatedAt = Date.now();
     saveUsers(users);
+    persistCloudNow();
     return g || null;
   }
 
@@ -702,6 +797,8 @@ const LEW = (() => {
     // user + profile
     getCurrentUser,
     saveProfile,
+    hydrateFromCloud,
+    persistCloudNow,
     getThemeId,
     setThemeId,
     requireAuth,

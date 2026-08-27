@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="styles.css?v=11" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E" />
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="login-body">
 
@@ -36,6 +37,14 @@
       </button>
 
       <p class="secure-note">🔒 Safe &amp; secure · Your progress is saved to the cloud ☁️</p>
+    </div>
+  </main>
+
+  <main class="auth-wrap" id="cloud-loading" style="display:none;">
+    <div class="auth-card auth-card-plain">
+      <div class="rocket-hero">☁️</div>
+      <h1 class="brand-title">Loading your explorer…</h1>
+      <p class="brand-sub">Getting name, stars, and approval code from the cloud.</p>
     </div>
   </main>
 
@@ -140,7 +149,8 @@
     </div>
   </div>
 
-  <script src="auth.js?v=11"></script>
+  <script src="supabase-config.js?v=1"></script>
+  <script src="auth.js?v=12"></script>
   <script src="themes.js?v=1"></script>
   <script>
     // ---------- helpers ----------
@@ -201,14 +211,15 @@
     }
 
     // If already signed in when landing here, decide where to go.
-    (function boot() {
+    (async function boot() {
       const user = LEW.getCurrentUser();
-      if (user) {
-        if (location.hash === '#profile' || !user.profile || !user.profile.name || !user.profile.age) {
-          showProfileView();
-        } else {
-          window.location.replace('index.html');
-        }
+      if (!user) return;
+      if (LEW.hydrateFromCloud) await LEW.hydrateFromCloud();
+      const fresh = LEW.getCurrentUser();
+      if (location.hash === '#profile' || !fresh.profile || !fresh.profile.name || !fresh.profile.age) {
+        showProfileView();
+      } else {
+        window.location.replace('index.html');
       }
     })();
 
@@ -247,8 +258,16 @@
         theme: (LEW.getThemeId && LEW.getThemeId()) || 'explorer'
       });
 
-      // Send welcome email (fire-and-await, but never block user longer than ~4s)
       submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving your profile…';
+      if (LEW.persistCloudNow) {
+        await Promise.race([
+          LEW.persistCloudNow(),
+          new Promise(res => setTimeout(res, 4000))
+        ]);
+      }
+
+      // Send welcome email (fire-and-await, but never block user longer than ~4s)
       submitBtn.textContent = LEW.isEmailConfigured()
         ? 'Sending welcome email…'
         : 'Setting things up…';
@@ -335,9 +354,14 @@
       gFormView.style.display = 'none';
     }
 
-    function pick(acc) {
+    async function pick(acc) {
       LEW.signInAs(acc);
       closeModal();
+      signinView.style.display = 'none';
+      const loading = document.getElementById('cloud-loading');
+      if (loading) loading.style.display = '';
+      if (LEW.hydrateFromCloud) await LEW.hydrateFromCloud();
+      if (loading) loading.style.display = 'none';
       routeAfterAuth();
     }
 

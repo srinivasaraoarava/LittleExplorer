@@ -172,6 +172,12 @@
           : "Couldn't save the code. Try again.";
       return;
     }
+    if (LEW.persistCloudNow) {
+      await Promise.race([
+        LEW.persistCloudNow(),
+        new Promise(res => setTimeout(res, 4000))
+      ]);
+    }
     const btn = document.getElementById("apSendBtn");
     const prev = btn.textContent;
     btn.disabled = true;
