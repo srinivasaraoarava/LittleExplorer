@@ -55,8 +55,8 @@
         </button>
         <div class="profile-dropdown" id="profileDropdown">
           <button type="button" id="themeMenuBtn">🎨 Themes</button>
-          <button type="button" id="approvalMenuBtn">🔐 Create approval code</button>
-          <button type="button" id="remindCodeBtn">📧 Remind me my code</button>
+          <button type="button" id="approvalMenuBtn">🔐 Create Approval Code</button>
+          <button type="button" id="remindCodeBtn">📧 Remind Me My Code</button>
           <button type="button" class="pd-signout" id="signoutBtn">Sign out</button>
         </div>
       </div>
@@ -216,7 +216,7 @@
   <script src="supabase-config.js?v=1"></script>
   <script src="auth.js?v=14"></script>
   <script src="mystery-box.js?v=5"></script>
-  <script src="approval.js?v=6"></script>
+  <script src="approval.js?v=7"></script>
   <script src="themes.js?v=1"></script>
   <script>
     const user = LEW.requireAuth({ loginUrl: 'login.html' });
@@ -249,8 +249,8 @@
 
       function syncApprovalLabel() {
         approvalMenuBtn.textContent = (LEW.hasApprovalCode && LEW.hasApprovalCode())
-          ? '🔐 Change approval code'
-          : '🔐 Create approval code';
+          ? '🔐 Change Approval Code'
+          : '🔐 Create Approval Code';
       }
       syncApprovalLabel();
       chip.addEventListener('click', (e) => {
@@ -286,11 +286,11 @@
         remindCodeBtn.disabled = false;
         const dest = (sent && sent.email) || (LEW.getApprovalEmail && LEW.getApprovalEmail()) || (user && user.email) || '';
         if (sent && sent.ok && sent.method === 'confirm') {
-          toast('Check your inbox to confirm the first email, then tap Remind me my code again.');
+          toast('Check your inbox to confirm the first email, then tap Remind Me My Code again.');
         } else if (sent && sent.ok) {
           toast('The approval code was emailed to ' + dest + '. Check inbox and spam.');
         } else if (sent && sent.reason === 'none') {
-          toast('No approval code yet. Tap Create approval code first.');
+          toast('No approval code yet. Tap Create Approval Code first.');
         } else if (sent && sent.reason === 'db-error') {
           toast('Could not read the code from the database. Try again.');
         } else {
@@ -323,7 +323,7 @@
             ? `A 6-digit parent approval code was emailed to <b>${safeEmail}</b>. Check inbox and spam — it is not shown on this screen.`
             : flag === 'confirm'
               ? `Check <b>${safeEmail}</b> and confirm the first email, then we can send the 6-digit approval code.`
-              : `Your account is ready. We couldn't email the approval code yet — open the profile menu and tap Create approval code.`;
+              : `Your account is ready. We couldn't email the approval code yet — open the profile menu and tap Create Approval Code.`;
         toast.style.display = '';
         requestAnimationFrame(() => toast.classList.add('show'));
         const dismiss = () => {

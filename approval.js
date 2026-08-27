@@ -13,7 +13,7 @@
 
           <div id="apCreate">
             <div class="approval-kicker">Parents</div>
-            <h2 id="apCreateTitle">Create approval code</h2>
+            <h2 id="apCreateTitle">Create Approval Code</h2>
             <p id="apCreateHint">We'll email a 6-digit code. It stays in the inbox — it is never shown on this screen.</p>
             <div class="approval-field" id="apCurrentWrap" style="display:none;">
               <label for="apCurrent">Current code</label>
@@ -134,7 +134,7 @@
   function setupCreateForm(isChange) {
     const has = !!(LEW.hasApprovalCode && LEW.hasApprovalCode());
     document.getElementById("apCurrentWrap").style.display = isChange ? "" : "none";
-    document.getElementById("apCreateTitle").textContent = isChange ? "Change approval code" : "Create approval code";
+    document.getElementById("apCreateTitle").textContent = isChange ? "Change Approval Code" : "Create Approval Code";
     document.getElementById("apCreateHint").textContent = isChange
       ? "Enter the current code from email. We'll email a new one — it won't be shown here. The old code stops working."
       : "We'll email a 6-digit code. That same code stays valid until you change it. It is never shown on this screen.";
