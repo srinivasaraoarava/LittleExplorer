@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrainQuest — Kids Learning Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css?v=11" />
+</head>
+<body class="subpage theme-purple">
+  <div class="float-sprites" aria-hidden="true">
+    <span class="sprite" style="--x:12%;--d:16s;--delay:-2s;">📐</span>
+    <span class="sprite" style="--x:32%;--d:20s;--delay:-8s;">🔬</span>
+    <span class="sprite" style="--x:58%;--d:18s;--delay:-4s;">📖</span>
+    <span class="sprite" style="--x:82%;--d:22s;--delay:-10s;">💭</span>
+  </div>
+
+  <header class="subpage-top">
+    <a href="../index.html" class="back-btn">← Back to Explorer</a>
+    <div style="display:inline-flex; gap:10px; align-items:center;">
+      <button type="button" class="star-badge" id="starBadge" title="View quiz rewards" style="display:none;">
+        <span class="reward-part stars"><span class="star-ico">⭐</span><span id="starCount">0</span></span>
+        <span class="reward-part gifts" id="giftPart" style="display:none;"><span class="gift-ico">🎁</span><span id="giftCount">0</span></span>
+      </button>
+      <button type="button" class="star-badge household-badge" id="householdBadge" title="View household rewards" style="display:none;">
+        <span class="reward-part hh-stars"><span class="hh-ico" id="householdStarIco">★</span><span id="householdStarCount">0</span></span>
+        <span class="reward-part hh-gifts" id="householdGiftPart"><span class="gift-ico">🎁</span><span id="householdGiftCount">0</span></span>
+      </button>
+      <div class="user-chip subpage-chip" id="userChip" style="display:none;">
+        <span class="avatar" id="userAvatar">🙂</span>
+        <span class="who"><span id="userName">Explorer</span><small id="userMeta">Age —</small></span>
+      </div>
+      <button class="signout-btn subpage-btn" id="signoutBtn" style="display:none;">Sign out</button>
+    </div>
+  </header>
+
+  <section class="sub-hero">
+    <div style="font-size:64px;">🧠</div>
+    <h1>BrainQuest</h1>
+    <p>AP &amp; CBSE aligned — pick a subject and take a bite-sized quiz!</p>
+  </section>
+
+  <section class="tiles" id="subject-tiles">
+    <button class="tile" data-subject="maths">
+      <span class="tile-icon">📐</span>
+      <div class="tile-title">Maths</div>
+      <div class="tile-sub">Numbers, shapes, logic</div>
+    </button>
+    <button class="tile" data-subject="science">
+      <span class="tile-icon">🔬</span>
+      <div class="tile-title">Science</div>
+      <div class="tile-sub">Body, earth, space</div>
+    </button>
+    <button class="tile" data-subject="english">
+      <span class="tile-icon">📖</span>
+      <div class="tile-title">English</div>
+      <div class="tile-sub">Grammar &amp; words</div>
+    </button>
+    <button class="tile" data-subject="mind">
+      <span class="tile-icon">💭</span>
+      <div class="tile-title">Mind &amp; Me</div>
+      <div class="tile-sub">Feelings &amp; habits</div>
+    </button>
+  </section>
+
+  <section id="quiz-wrap" style="display:none; padding: 30px 24px 60px;">
+    <div class="quiz-card">
+      <div class="quiz-progress" id="qprog">Question 1 of 5</div>
+      <h2 id="qtext">Loading…</h2>
+      <div class="options" id="qopts"></div>
+      <button class="next-btn" id="qnext" style="display:none;">Next →</button>
+      <div id="qresult" style="display:none; text-align:center; padding: 20px 0;"></div>
+    </div>
+    <div style="text-align:center; margin-top: 16px;">
+      <a href="#" id="qback" style="color:white; font-weight:700; text-decoration: none;">← Choose another subject</a>
+    </div>
+  </section>
+
+  <script src="../auth.js?v=11"></script>
+  <script src="../themes.js?v=1"></script>
+  <script src="../mystery-box.js?v=5"></script>
+  <script src="question-bank.js?v=3"></script>
+  <script>
+    const _user = LEW.requireAuth({ loginUrl: '../login.html' });
+    function refreshStarBadge() {
+      if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+    }
+    if (_user) {
+      const p = _user.profile || {};
+      document.getElementById('userChip').style.display = '';
+      document.getElementById('signoutBtn').style.display = '';
+      document.getElementById('userName').textContent = p.name || 'Explorer';
+      document.getElementById('userMeta').textContent = `Age ${p.age}`;
+      const av = document.getElementById('userAvatar');
+      if (_user.picture) av.innerHTML = `<img src="${_user.picture}" alt="" />`;
+      else av.textContent = (p.name || 'E').trim().charAt(0).toUpperCase();
+      document.getElementById('signoutBtn').addEventListener('click', () => {
+        LEW.signOut(); window.location.replace('../login.html');
+      });
+      refreshStarBadge();
+    }
+  </script>
+  <script src="../script.js?v=3"></script>
+  <script>
+    const SUBJECT_LABEL = { maths: 'Maths', science: 'Science', english: 'English', mind: 'Mind & Me' };
+    const SUBJECT_EMOJI = { maths: '📐', science: '🔬', english: '📖', mind: '💭' };
+    const QUIZ_LEN = 5;
+
+    const subjectTiles = document.getElementById('subject-tiles');
+    const quizWrap = document.getElementById('quiz-wrap');
+    const qtext = document.getElementById('qtext');
+    const qopts = document.getElementById('qopts');
+    const qnext = document.getElementById('qnext');
+    const qprog = document.getElementById('qprog');
+    const qresult = document.getElementById('qresult');
+    const qback = document.getElementById('qback');
+
+    let bank = [], idx = 0, score = 0, locked = false, currentSubject = null;
+
+    function reset() {
+      subjectTiles.style.display = '';
+      quizWrap.style.display = 'none';
+      qresult.style.display = 'none';
+      qnext.style.display = 'none';
+      qopts.innerHTML = '';
+      currentSubject = null;
+      updateSubjectMeta();
+    }
+    qback.addEventListener('click', (e) => { e.preventDefault(); reset(); });
+
+    function updateSubjectMeta() {
+      document.querySelectorAll('#subject-tiles .tile').forEach(t => {
+        const subj = t.dataset.subject;
+        const seen = LEW.QBank.totalSeen(subj);
+        const pool = LEW.QBank.POOL_SIZE;
+        let meta = t.querySelector('.tile-meta');
+        if (!meta) {
+          meta = document.createElement('div');
+          meta.className = 'tile-meta';
+          t.appendChild(meta);
+        }
+        meta.innerHTML = `<span>${seen}/${pool.toLocaleString()} answered</span>`;
+      });
+    }
+
+    function celebrateStar(total) {
+      const overlay = document.createElement('div');
+      overlay.className = 'star-award-overlay';
+      overlay.innerHTML = `
+        <div class="star-award-card">
+          <div class="star-award-star">⭐</div>
+          <div class="star-award-title">You earned a star!</div>
+          <div class="star-award-sub">Total stars: <b>${total}</b></div>
+          <button class="star-award-btn">Awesome!</button>
+        </div>`;
+      document.body.appendChild(overlay);
+      requestAnimationFrame(() => overlay.classList.add('show'));
+      const close = () => {
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.remove(), 350);
+      };
+      overlay.querySelector('.star-award-btn').addEventListener('click', close);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+      if (typeof window.launchConfetti === 'function') window.launchConfetti();
+    }
+
+    function render() {
+      if (idx >= bank.length) {
+        qtext.textContent = "All done! 🎉";
+        qopts.innerHTML = '';
+        qnext.style.display = 'none';
+        qprog.textContent = '';
+        qresult.style.display = '';
+
+        const perfect = score === bank.length;
+        let starEarnedNote = '';
+        if (perfect && currentSubject) {
+          const total = LEW.awardStar({
+            subject: currentSubject,
+            score, total: bank.length,
+            label: `Perfect in ${SUBJECT_LABEL[currentSubject]}`
+          });
+          starEarnedNote = `<div class="perfect-note">⭐ New star added to your profile! Total: <b>${total}</b></div>`;
+          refreshStarBadge();
+          const boxTriggered = (typeof LEW.maybeAwardMysteryBox === 'function')
+            ? LEW.maybeAwardMysteryBox(total) : false;
+          if (!boxTriggered) setTimeout(() => celebrateStar(total), 300);
+        }
+
+        const emoji = perfect ? '🏆' : score >= 3 ? '⭐' : '🌱';
+        const msg = perfect
+          ? "Perfect! You're a Genius!"
+          : score >= 3 ? "Great try — keep going!"
+                       : "Every try helps you grow!";
+        qresult.innerHTML = `
+          <div style="font-size:56px;">${emoji}</div>
+          <div style="font-size:22px; font-weight:800; font-family:'Baloo 2';">
+            You scored ${score} / ${bank.length}
+          </div>
+          <div style="color:#666; margin-top:6px;">${msg}</div>
+          ${starEarnedNote}
+          <div class="result-actions">
+            <button class="result-btn primary" id="qagain">Try 5 new questions →</button>
+            <button class="result-btn ghost" id="qhome">Choose another subject</button>
+          </div>`;
+        document.getElementById('qagain').addEventListener('click', () => startQuiz(currentSubject));
+        document.getElementById('qhome').addEventListener('click', reset);
+        updateSubjectMeta();
+        return;
+      }
+      const item = bank[idx];
+      qprog.textContent = `Question ${idx + 1} of ${bank.length}`;
+      qtext.textContent = item.q;
+      qopts.innerHTML = '';
+      locked = false;
+      item.opts.forEach((opt, i) => {
+        const b = document.createElement('button');
+        b.className = 'option';
+        b.textContent = opt;
+        b.addEventListener('click', () => {
+          if (locked) return;
+          locked = true;
+          if (i === item.a) { b.classList.add('correct'); score++; }
+          else {
+            b.classList.add('wrong');
+            const right = qopts.children[item.a];
+            if (right) right.classList.add('correct');
+          }
+          qnext.style.display = '';
+        });
+        qopts.appendChild(b);
+      });
+      qnext.style.display = 'none';
+    }
+
+    qnext.addEventListener('click', () => { idx++; render(); });
+
+    function startQuiz(subject) {
+      currentSubject = subject;
+      bank = LEW.QBank.pick(subject, QUIZ_LEN);
+      if (!bank.length) {
+        alert('No questions available. Please try again.');
+        return;
+      }
+      idx = 0; score = 0;
+      subjectTiles.style.display = 'none';
+      quizWrap.style.display = '';
+      qresult.style.display = 'none';
+      render();
+    }
+
+    document.querySelectorAll('#subject-tiles .tile').forEach(t => {
+      t.addEventListener('click', () => startQuiz(t.dataset.subject));
+    });
+
+    updateSubjectMeta();
+  </script>
+</body>
+</html>

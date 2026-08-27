@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>World Wonders — Learn & Explore Everything</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css?v=11" />
+  <style>
+    .fact-card {
+      max-width: 720px; margin: 20px auto; padding: 26px;
+      background: white; border-radius: 24px;
+      box-shadow: var(--shadow-lg);
+    }
+    .fact-topic-line {
+      text-align: center; font-size: 12px; font-weight: 700;
+      letter-spacing: .4px; color: #1e78d6;
+      background: rgba(30, 120, 214, 0.08);
+      padding: 6px 14px; border-radius: 999px;
+      display: inline-block; margin: 0 auto 14px;
+      width: fit-content;
+    }
+    .fact-card > .fact-topic-line { display: block; text-align: center; margin-left: auto; margin-right: auto; }
+    .fact-emoji { font-size: 64px; text-align:center; }
+    .fact-title { font-family: 'Baloo 2'; font-size: 24px; text-align:center; margin: 8px 0; }
+    .fact-body  { color: var(--text-soft); text-align:center; line-height:1.6; font-size: 16px; }
+    .fact-progress { margin: 18px auto 6px; max-width: 340px; }
+    .fact-progress-bar {
+      height: 10px; background: #eef2f7; border-radius: 999px; overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,.08);
+    }
+    .fact-progress-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #ffd76a, #ff9d00);
+      border-radius: 999px;
+      transition: width .5s cubic-bezier(.34,1.56,.64,1);
+    }
+    .fact-progress-label {
+      text-align: center; margin-top: 8px;
+      font-size: 12.5px; color: #64748b; font-weight: 600;
+    }
+    .fact-actions { display:flex; gap:10px; justify-content:center; margin-top: 16px; flex-wrap: wrap; }
+    .primary-btn {
+      background: linear-gradient(135deg, #1e78d6, #0ea5e9);
+      border: none; color:white; padding: 12px 18px;
+      border-radius: 14px; font-family:'Baloo 2'; font-weight:800; cursor:pointer;
+      transition: transform .15s ease;
+    }
+    .primary-btn:hover { transform: translateY(-2px); }
+  </style>
+</head>
+<body class="subpage theme-blue">
+  <div class="float-sprites" aria-hidden="true">
+    <span class="sprite" style="--x:10%;--d:16s;--delay:-2s;">🐘</span>
+    <span class="sprite" style="--x:35%;--d:20s;--delay:-8s;">🪐</span>
+    <span class="sprite" style="--x:60%;--d:18s;--delay:-4s;">🎭</span>
+    <span class="sprite" style="--x:85%;--d:22s;--delay:-10s;">⚽</span>
+  </div>
+
+  <header class="subpage-top">
+    <a href="../index.html" class="back-btn">← Back to Explorer</a>
+    <div style="display:inline-flex; gap:10px; align-items:center;">
+      <button type="button" class="star-badge" id="starBadge" title="View quiz rewards" style="display:none;">
+        <span class="reward-part stars"><span class="star-ico">⭐</span><span id="starCount">0</span></span>
+        <span class="reward-part gifts" id="giftPart" style="display:none;"><span class="gift-ico">🎁</span><span id="giftCount">0</span></span>
+      </button>
+      <button type="button" class="star-badge household-badge" id="householdBadge" title="View household rewards" style="display:none;">
+        <span class="reward-part hh-stars"><span class="hh-ico" id="householdStarIco">★</span><span id="householdStarCount">0</span></span>
+        <span class="reward-part hh-gifts" id="householdGiftPart"><span class="gift-ico">🎁</span><span id="householdGiftCount">0</span></span>
+      </button>
+      <div class="user-chip subpage-chip" id="userChip" style="display:none;">
+        <span class="avatar" id="userAvatar">🙂</span>
+        <span class="who"><span id="userName">Explorer</span><small id="userMeta">Age —</small></span>
+      </div>
+      <button class="signout-btn subpage-btn" id="signoutBtn" style="display:none;">Sign out</button>
+    </div>
+  </header>
+
+  <section class="sub-hero">
+    <div style="font-size:64px;">🌎</div>
+    <h1>World Wonders</h1>
+    <p>Amazing facts from around the world — pick a topic to discover something new!</p>
+  </section>
+
+  <section class="tiles" id="topic-tiles">
+    <button class="tile" data-topic="animals">
+      <span class="tile-icon">🐘</span>
+      <div class="tile-title">Animals</div>
+      <div class="tile-sub">Land, sea &amp; sky</div>
+    </button>
+    <button class="tile" data-topic="space">
+      <span class="tile-icon">🪐</span>
+      <div class="tile-title">Space</div>
+      <div class="tile-sub">Stars &amp; planets</div>
+    </button>
+    <button class="tile" data-topic="cultures">
+      <span class="tile-icon">🎭</span>
+      <div class="tile-title">Cultures</div>
+      <div class="tile-sub">Traditions from around the world</div>
+    </button>
+    <button class="tile" data-topic="sports">
+      <span class="tile-icon">⚽</span>
+      <div class="tile-title">Sports</div>
+      <div class="tile-sub">Games &amp; heroes</div>
+    </button>
+    <button class="tile" data-topic="festivals">
+      <span class="tile-icon">🎉</span>
+      <div class="tile-title">Festivals</div>
+      <div class="tile-sub">Around the world</div>
+    </button>
+    <button class="tile" data-topic="history">
+      <span class="tile-icon">🏛️</span>
+      <div class="tile-title">History</div>
+      <div class="tile-sub">Ancient wonders</div>
+    </button>
+    <button class="tile" data-topic="nature">
+      <span class="tile-icon">🌿</span>
+      <div class="tile-title">Nature Facts</div>
+      <div class="tile-sub">Amazing plant &amp; animal facts</div>
+    </button>
+  </section>
+
+  <section id="fact-area" style="display:none;">
+    <div class="fact-card">
+      <div class="fact-topic-line" id="factTopicLine">🐘 Animals · Fact 1 of 5,000</div>
+      <div class="fact-emoji" id="fe">🐘</div>
+      <div class="fact-title" id="ft">Fact</div>
+      <div class="fact-body" id="fb">...</div>
+      <div class="fact-progress" id="factProgress" title="Facts to next star">
+        <div class="fact-progress-bar"><div class="fact-progress-fill" id="factProgressFill"></div></div>
+        <div class="fact-progress-label" id="factProgressLabel">Discover 10 facts to earn a ⭐</div>
+      </div>
+      <div class="fact-actions">
+        <button class="primary-btn" id="another">Another Fact 🔁</button>
+        <button class="primary-btn" id="back-topics" style="background: linear-gradient(135deg,#64748b,#94a3b8);">← Topics</button>
+      </div>
+    </div>
+  </section>
+
+  <script src="../auth.js?v=11"></script>
+  <script src="../themes.js?v=1"></script>
+  <script src="../mystery-box.js?v=5"></script>
+  <script src="fact-bank.js?v=4"></script>
+  <script>
+    const _user = LEW.requireAuth({ loginUrl: '../login.html' });
+    function refreshStarBadge() {
+      if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+    }
+    if (_user) {
+      const p = _user.profile || {};
+      document.getElementById('userChip').style.display = '';
+      document.getElementById('signoutBtn').style.display = '';
+      document.getElementById('userName').textContent = p.name || 'Explorer';
+      document.getElementById('userMeta').textContent = `Age ${p.age}`;
+      const av = document.getElementById('userAvatar');
+      if (_user.picture) av.innerHTML = `<img src="${_user.picture}" alt="" />`;
+      else av.textContent = (p.name || 'E').trim().charAt(0).toUpperCase();
+      document.getElementById('signoutBtn').addEventListener('click', () => {
+        LEW.signOut(); window.location.replace('../login.html');
+      });
+      refreshStarBadge();
+    }
+  </script>
+  <script src="../script.js?v=3"></script>
+  <script>
+    const TOPIC_LABEL = {
+      animals: 'Animals', space: 'Space', cultures: 'Cultures',
+      sports: 'Sports', festivals: 'Festivals', history: 'History',
+      nature: 'Nature Facts'
+    };
+    const TOPIC_EMOJI = {
+      animals: '🐘', space: '🪐', cultures: '🎭',
+      sports: '⚽', festivals: '🎉', history: '🏛️',
+      nature: '🌿'
+    };
+    const STAR_EVERY = 10;
+
+    const topicTiles = document.getElementById('topic-tiles');
+    const factArea = document.getElementById('fact-area');
+    const fe = document.getElementById('fe');
+    const ft = document.getElementById('ft');
+    const fb = document.getElementById('fb');
+    const factTopicLine = document.getElementById('factTopicLine');
+    const factProgressFill = document.getElementById('factProgressFill');
+    const factProgressLabel = document.getElementById('factProgressLabel');
+    let currentTopic = null;
+
+    function updateTopicMeta() {
+      document.querySelectorAll('#topic-tiles .tile').forEach(t => {
+        const topic = t.dataset.topic;
+        const seen = LEW.FactBank.totalSeen(topic);
+        const pool = LEW.FactBank.POOL_SIZE;
+        let meta = t.querySelector('.tile-meta');
+        if (!meta) {
+          meta = document.createElement('div');
+          meta.className = 'tile-meta';
+          t.appendChild(meta);
+        }
+        meta.innerHTML = `<span>${seen}/${pool.toLocaleString()} discovered</span>`;
+      });
+    }
+
+    function updateProgressUI() {
+      const inTopic = currentTopic ? LEW.FactBank.totalSeen(currentTopic) : 0;
+      const progress = inTopic % STAR_EVERY;
+      const pct = (progress / STAR_EVERY) * 100;
+      factProgressFill.style.width = pct + '%';
+      const remaining = STAR_EVERY - progress;
+      if (progress === 0 && inTopic > 0) {
+        factProgressLabel.textContent = `⭐ Star earned! Discover ${STAR_EVERY} more for another.`;
+      } else {
+        factProgressLabel.textContent = `Discover ${remaining} more ${remaining === 1 ? 'fact' : 'facts'} for a ⭐`;
+      }
+      if (currentTopic) {
+        factTopicLine.textContent = `${TOPIC_EMOJI[currentTopic]} ${TOPIC_LABEL[currentTopic]} · ${inTopic.toLocaleString()} discovered`;
+      }
+    }
+
+    function celebrateStar(total) {
+      const overlay = document.createElement('div');
+      overlay.className = 'star-award-overlay';
+      overlay.innerHTML = `
+        <div class="star-award-card">
+          <div class="star-award-star">⭐</div>
+          <div class="star-award-title">You earned a star!</div>
+          <div class="star-award-sub">Total stars: <b>${total}</b></div>
+          <button class="star-award-btn">Awesome!</button>
+        </div>`;
+      document.body.appendChild(overlay);
+      requestAnimationFrame(() => overlay.classList.add('show'));
+      const close = () => {
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.remove(), 350);
+      };
+      overlay.querySelector('.star-award-btn').addEventListener('click', close);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+      if (typeof window.launchConfetti === 'function') window.launchConfetti();
+    }
+
+    function showFact(topic) {
+      currentTopic = topic;
+      const beforeCount = LEW.FactBank.totalSeen(topic);
+      const item = LEW.FactBank.pick(topic);
+      if (!item) {
+        ft.textContent = 'All done!';
+        fb.textContent = 'You have explored every fact in this topic. Amazing!';
+        fe.textContent = '🎉';
+        return;
+      }
+      fe.textContent = item.e;
+      ft.textContent = item.t;
+      fb.textContent = item.b;
+
+      const afterCount = beforeCount + 1;
+      if (afterCount % STAR_EVERY === 0) {
+        const total = LEW.awardStar({
+          subject: 'world-wonders',
+          label: `${STAR_EVERY} facts explored in ${TOPIC_LABEL[topic]}`
+        });
+        refreshStarBadge();
+        const boxTriggered = (typeof LEW.maybeAwardMysteryBox === 'function')
+          ? LEW.maybeAwardMysteryBox(total) : false;
+        if (!boxTriggered) setTimeout(() => celebrateStar(total), 250);
+      }
+      updateProgressUI();
+      updateTopicMeta();
+    }
+
+    document.querySelectorAll('#topic-tiles .tile').forEach(t => {
+      t.addEventListener('click', () => {
+        topicTiles.style.display = 'none';
+        factArea.style.display = '';
+        showFact(t.dataset.topic);
+      });
+    });
+    document.getElementById('another').addEventListener('click', () => showFact(currentTopic));
+    document.getElementById('back-topics').addEventListener('click', () => {
+      factArea.style.display = 'none';
+      topicTiles.style.display = '';
+      currentTopic = null;
+      updateTopicMeta();
+    });
+
+    updateTopicMeta();
+  </script>
+</body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in — Little Explorer World</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=11" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E" />
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body class="login-body">
+
+  <!-- SIGN-IN VIEW -->
+  <main class="auth-wrap" id="signin-view">
+    <div class="auth-card auth-card-plain">
+      <div class="rocket-hero">🚀</div>
+      <h1 class="brand-title">Little Explorer <span class="grad-text">World!</span></h1>
+      <p class="brand-sub">
+        Sign in to save your <span class="star">⭐</span> stars and<br>
+        track progress across all 4 apps!
+      </p>
+
+      <button id="gBtn" class="g-green-btn" type="button">
+        <span class="g-logo">
+          <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+        </span>
+        <span class="g-label">Sign in with Google</span>
+      </button>
+
+      <p class="secure-note">🔒 Safe &amp; secure · Your progress is saved to the cloud ☁️</p>
+    </div>
+  </main>
+
+  <!-- PROFILE SETUP VIEW -->
+  <main class="auth-wrap" id="profile-view" style="display:none;">
+    <div class="auth-card profile-card">
+      <button type="button" class="back-link" id="backToSignin">← Back to sign in</button>
+      <div class="avatar-big" id="avatarBig">🙂</div>
+      <h2 class="auth-title" style="font-size:28px;">Let's set up your profile!</h2>
+      <p class="auth-sub" id="profile-hello">Tell us a bit about yourself so we can make everything just for you.</p>
+
+      <form id="profileForm" class="profile-form" novalidate>
+        <label class="field">
+          <span class="label">Your name</span>
+          <input type="text" id="pName" placeholder="e.g. Aditi" required maxlength="30" autocomplete="off" />
+        </label>
+
+        <div class="field">
+          <span class="label">Gender</span>
+          <div class="seg" role="radiogroup">
+            <label><input type="radio" name="gender" value="boy"><span>👦 Boy</span></label>
+            <label><input type="radio" name="gender" value="girl"><span>👧 Girl</span></label>
+            <label><input type="radio" name="gender" value="other"><span>🌈 Prefer not to say</span></label>
+          </div>
+        </div>
+
+        <label class="field">
+          <span class="label">Age <span id="ageLabel" class="age-num">8</span></span>
+          <input type="range" id="pAge" min="3" max="15" step="1" value="8" />
+          <div class="age-scale"><span>3</span><span>9</span><span>15</span></div>
+        </label>
+
+        <div class="field">
+          <span class="label">Theme</span>
+          <div id="profileThemeGrid"></div>
+        </div>
+
+        <button type="submit" class="save-btn">Start Exploring →</button>
+        <p id="pErr" class="err-msg" style="display:none;"></p>
+      </form>
+    </div>
+  </main>
+
+  <!-- GOOGLE ACCOUNT CHOOSER MODAL -->
+  <div class="google-modal-backdrop" id="gModal" role="dialog" aria-modal="true" aria-labelledby="gTitle">
+    <div class="google-modal">
+      <div class="g-header">
+        <span class="g-header-logo">
+          <svg viewBox="0 0 48 48" width="22" height="22" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+        </span>
+        <span class="g-header-title">Sign in with Google</span>
+      </div>
+
+      <div class="g-body">
+        <!-- Picker view (list of accounts) -->
+        <div id="gPickerView">
+          <h2 id="gTitle" class="g-title-big">Choose an account</h2>
+          <p class="g-subtitle">to continue to <span class="app-name">little-explorer-world</span></p>
+
+          <div class="g-accounts" id="gAccounts"></div>
+
+          <div class="g-row g-use-another" id="gUseAnother">
+            <span class="g-account-avatar g-neutral-avatar">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#5f6368" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
+              </svg>
+            </span>
+            <div class="g-account-info"><div class="g-account-name">Use another account</div></div>
+          </div>
+        </div>
+
+        <!-- Enter-account form view -->
+        <div id="gFormView" style="display:none;">
+          <h2 class="g-title-big">Sign in</h2>
+          <p class="g-subtitle">Use your Google Account to continue to <span class="app-name">little-explorer-world</span></p>
+          <form id="gForm" class="g-form" novalidate>
+            <label>Full name</label>
+            <input type="text" id="gInputName" placeholder="e.g. Aditi Sharma" maxlength="60" autocomplete="name" />
+
+            <label>Email or phone</label>
+            <input type="email" id="gInputEmail" placeholder="username@gmail.com" required autocomplete="email" />
+            <p id="gFormErr" class="g-form-err" style="display:none;">Please enter a valid email address.</p>
+
+            <div class="g-form-actions">
+              <button type="button" class="g-cancel" id="gCancelForm">← Back</button>
+              <button type="submit" class="g-next">Next</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="g-footer">
+        <span>🌐 English (United States) ▾</span>
+        <span class="g-links"><a href="#" onclick="return false;">Help</a> <a href="#" onclick="return false;">Privacy</a> <a href="#" onclick="return false;">Terms</a></span>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js?v=11"></script>
+  <script src="themes.js?v=1"></script>
+  <script>
+    // ---------- helpers ----------
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function initial(s) { return (s || '?').trim().charAt(0).toUpperCase() || '?'; }
+    function avatarColor(seed) {
+      const colors = ['#1a73e8','#d93025','#e37400','#188038','#7b1fa2','#00695c','#3f51b5','#f57c00','#c2185b','#0097a7'];
+      let hash = 0;
+      for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+      return colors[Math.abs(hash) % colors.length];
+    }
+    function validEmail(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
+
+    // ---------- views + routing ----------
+    const signinView  = document.getElementById('signin-view');
+    const profileView = document.getElementById('profile-view');
+
+    function showProfileView() {
+      const user = LEW.getCurrentUser();
+      if (!user) { signinView.style.display = ''; profileView.style.display = 'none'; return; }
+      signinView.style.display = 'none';
+      profileView.style.display = '';
+
+      const avatar = document.getElementById('avatarBig');
+      if (user.picture) avatar.innerHTML = `<img src="${user.picture}" alt="avatar" />`;
+      else avatar.textContent = initial(user.googleName || user.email);
+
+      const hello = document.getElementById('profile-hello');
+      if (user.googleName) hello.textContent = `Hi ${user.googleName.split(' ')[0]}! Tell us a bit about yourself so we can make everything just for you.`;
+
+      const name = (user.profile && user.profile.name) || user.googleName || '';
+      document.getElementById('pName').value = (name.split(' ')[0] || '');
+      if (user.profile && user.profile.gender) {
+        const r = document.querySelector(`input[name="gender"][value="${user.profile.gender}"]`);
+        if (r) r.checked = true;
+      }
+      if (user.profile && user.profile.age) {
+        document.getElementById('pAge').value = user.profile.age;
+        document.getElementById('ageLabel').textContent = user.profile.age;
+      }
+      if (typeof LEW.mountThemeGrid === 'function') {
+        LEW.mountThemeGrid(document.getElementById('profileThemeGrid'), {
+          selected: (user.profile && user.profile.theme) || 'explorer'
+        });
+      }
+    }
+
+    function routeAfterAuth() {
+      const user = LEW.getCurrentUser();
+      if (!user) return;
+      if (user.profile && user.profile.name && user.profile.age) {
+        window.location.replace('index.html');
+      } else {
+        showProfileView();
+      }
+    }
+
+    // If already signed in when landing here, decide where to go.
+    (function boot() {
+      const user = LEW.getCurrentUser();
+      if (user) {
+        if (location.hash === '#profile' || !user.profile || !user.profile.name || !user.profile.age) {
+          showProfileView();
+        } else {
+          window.location.replace('index.html');
+        }
+      }
+    })();
+
+    // Back button on profile view → return to sign-in choices
+    document.getElementById('backToSignin').addEventListener('click', () => {
+      const u = LEW.getCurrentUser();
+      if (u && (!u.profile || !u.profile.name || !u.profile.age)) LEW.signOut();
+      if (location.hash) history.replaceState(null, '', location.pathname);
+      profileView.style.display = 'none';
+      signinView.style.display = '';
+    });
+
+    // Profile form
+    const ageInput = document.getElementById('pAge');
+    const ageLabel = document.getElementById('ageLabel');
+    ageInput.addEventListener('input', () => { ageLabel.textContent = ageInput.value; });
+
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('pName').value.trim();
+      const genderEl = document.querySelector('input[name="gender"]:checked');
+      const age = parseInt(ageInput.value, 10);
+      const err = document.getElementById('pErr');
+      const submitBtn = e.target.querySelector('.save-btn');
+      const originalLabel = submitBtn.textContent;
+
+      if (!name) { err.textContent = 'Please enter your name.'; err.style.display = ''; return; }
+      if (!genderEl) { err.textContent = 'Please pick an option for gender.'; err.style.display = ''; return; }
+      if (!age || age < 3 || age > 15) { err.textContent = 'Please pick an age between 3 and 15.'; err.style.display = ''; return; }
+      err.style.display = 'none';
+
+      LEW.saveProfile({
+        name,
+        gender: genderEl.value,
+        age,
+        theme: (LEW.getThemeId && LEW.getThemeId()) || 'explorer'
+      });
+
+      // Send welcome email (fire-and-await, but never block user longer than ~4s)
+      submitBtn.disabled = true;
+      submitBtn.textContent = LEW.isEmailConfigured()
+        ? 'Sending welcome email…'
+        : 'Setting things up…';
+
+      const user = LEW.getCurrentUser();
+      const emailPromise = LEW.sendWelcomeEmail(user);
+      const timeoutPromise = new Promise(res => setTimeout(() => res({ ok: false, reason: 'timeout' }), 4500));
+      const result = await Promise.race([emailPromise, timeoutPromise]);
+
+      sessionStorage.setItem('lew_welcome_flag', result.ok ? 'sent' : 'skipped');
+      sessionStorage.setItem('lew_welcome_email', (user && user.email) || '');
+
+      submitBtn.textContent = originalLabel;
+      submitBtn.disabled = false;
+      window.location.replace('index.html');
+    });
+
+    // ---------- Google account chooser ----------
+    const gBtn         = document.getElementById('gBtn');
+    const gModal       = document.getElementById('gModal');
+    const gAccounts    = document.getElementById('gAccounts');
+    const gPickerView  = document.getElementById('gPickerView');
+    const gFormView    = document.getElementById('gFormView');
+    const gForm        = document.getElementById('gForm');
+    const gInputName   = document.getElementById('gInputName');
+    const gInputEmail  = document.getElementById('gInputEmail');
+    const gFormErr     = document.getElementById('gFormErr');
+
+    function renderAccounts() {
+      const list = LEW.listKnownAccounts();
+      if (list.length === 0) { gAccounts.innerHTML = ''; return; }
+      gAccounts.innerHTML = list.map((a, i) => {
+        const display = a.name || a.email.split('@')[0];
+        const color = avatarColor(a.email);
+        return `
+          <div class="g-row g-account" data-idx="${i}" tabindex="0" role="button">
+            <span class="g-account-avatar" style="background:${color}">${escapeHtml(initial(display))}</span>
+            <div class="g-account-info">
+              <div class="g-account-name">${escapeHtml(display)}</div>
+              <div class="g-account-email">${escapeHtml(a.email)}</div>
+            </div>
+            <button class="g-remove" data-email="${escapeHtml(a.email)}" aria-label="Remove account" title="Remove">✕</button>
+          </div>
+        `;
+      }).join('');
+      gAccounts.querySelectorAll('.g-account').forEach(el => {
+        el.addEventListener('click', (e) => {
+          if (e.target.closest('.g-remove')) return;
+          const acc = LEW.listKnownAccounts()[+el.dataset.idx];
+          if (acc) pick(acc);
+        });
+      });
+      gAccounts.querySelectorAll('.g-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          LEW.removeKnownAccount(btn.dataset.email);
+          renderAccounts();
+        });
+      });
+    }
+
+    function openModal() {
+      renderAccounts();
+      gPickerView.style.display = '';
+      gFormView.style.display = 'none';
+      gFormErr.style.display = 'none';
+      gInputName.value = '';
+      gInputEmail.value = '';
+      gModal.classList.add('open');
+      // If no known accounts yet, go straight to the form
+      if (LEW.listKnownAccounts().length === 0) {
+        showForm();
+      }
+    }
+    function closeModal() { gModal.classList.remove('open'); }
+
+    function showForm() {
+      gPickerView.style.display = 'none';
+      gFormView.style.display = '';
+      setTimeout(() => (gInputEmail.value ? gInputName : gInputEmail).focus(), 50);
+    }
+    function showPicker() {
+      gPickerView.style.display = '';
+      gFormView.style.display = 'none';
+    }
+
+    function pick(acc) {
+      LEW.signInAs(acc);
+      closeModal();
+      routeAfterAuth();
+    }
+
+    gBtn.addEventListener('click', openModal);
+    gModal.addEventListener('click', (e) => { if (e.target === gModal) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    document.getElementById('gUseAnother').addEventListener('click', showForm);
+    document.getElementById('gCancelForm').addEventListener('click', () => {
+      if (LEW.listKnownAccounts().length === 0) closeModal();
+      else showPicker();
+    });
+
+    gForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name  = gInputName.value.trim();
+      const email = gInputEmail.value.trim();
+      if (!validEmail(email)) {
+        gFormErr.textContent = 'Please enter a valid email address.';
+        gFormErr.style.display = '';
+        gInputEmail.focus();
+        return;
+      }
+      gFormErr.style.display = 'none';
+      pick({ email, name });
+    });
+  </script>
+</body>
+</html>

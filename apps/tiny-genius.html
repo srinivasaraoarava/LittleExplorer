@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tiny Genius — Smart Learning Coach</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css?v=11" />
+</head>
+<body class="subpage theme-green">
+  <div class="float-sprites" aria-hidden="true">
+    <span class="sprite" style="--x:10%;--d:16s;--delay:-2s;">🌿</span>
+    <span class="sprite" style="--x:30%;--d:20s;--delay:-8s;">🐛</span>
+    <span class="sprite" style="--x:55%;--d:18s;--delay:-4s;">🌸</span>
+    <span class="sprite" style="--x:80%;--d:22s;--delay:-10s;">🦉</span>
+  </div>
+
+  <header class="subpage-top">
+    <a href="../index.html" class="back-btn">← Back to Explorer</a>
+    <div style="display:inline-flex; gap:10px; align-items:center;">
+      <button type="button" class="star-badge" id="starBadge" title="View quiz rewards" style="display:none;">
+        <span class="reward-part stars"><span class="star-ico">⭐</span><span id="starCount">0</span></span>
+        <span class="reward-part gifts" id="giftPart" style="display:none;"><span class="gift-ico">🎁</span><span id="giftCount">0</span></span>
+      </button>
+      <button type="button" class="star-badge household-badge" id="householdBadge" title="View household rewards" style="display:none;">
+        <span class="reward-part hh-stars"><span class="hh-ico" id="householdStarIco">★</span><span id="householdStarCount">0</span></span>
+        <span class="reward-part hh-gifts" id="householdGiftPart"><span class="gift-ico">🎁</span><span id="householdGiftCount">0</span></span>
+      </button>
+      <div class="user-chip subpage-chip" id="userChip" style="display:none;">
+        <span class="avatar" id="userAvatar">🙂</span>
+        <span class="who"><span id="userName">Explorer</span><small id="userMeta">Age —</small></span>
+      </div>
+      <button class="signout-btn subpage-btn" id="signoutBtn" style="display:none;">Sign out</button>
+    </div>
+  </header>
+
+  <section class="sub-hero">
+    <div style="font-size:64px;">🦉</div>
+    <h1>Tiny Genius</h1>
+    <p>Your gentle, nature-loving smart coach! Pick an activity below and let's learn together. 🌱</p>
+  </section>
+
+  <section class="tiles">
+    <button class="tile" data-tile="water">
+      <span class="tile-icon">💧</span>
+      <div class="tile-title">Water Reminder</div>
+      <div class="tile-sub">Sip a glass every hour</div>
+    </button>
+    <button class="tile" data-tile="bedtime">
+      <span class="tile-icon">🌙</span>
+      <div class="tile-title">Bedtime Mode</div>
+      <div class="tile-sub">Soft story time</div>
+    </button>
+    <button class="tile" data-tile="rewards">
+      <span class="tile-icon">🏆</span>
+      <div class="tile-title">My Rewards</div>
+      <div class="tile-sub">Stars & badges</div>
+    </button>
+    <button class="tile" data-tile="mindful">
+      <span class="tile-icon">🧘</span>
+      <div class="tile-title">Breathe &amp; Relax</div>
+      <div class="tile-sub">1-minute calm</div>
+    </button>
+    <button class="tile" data-tile="household">
+      <span class="tile-icon">🏡</span>
+      <div class="tile-title">Household</div>
+      <div class="tile-sub">5 daily tasks · earn a ⭐</div>
+    </button>
+  </section>
+
+  <section class="household-view" id="household-view" style="display:none;">
+    <div class="household-card">
+      <div class="household-head">
+        <div class="household-emoji">🏡</div>
+        <div>
+          <h2 class="household-title">Today's Household Missions</h2>
+          <div class="household-sub" id="householdSub">Finish 5, then submit to earn a ★</div>
+        </div>
+      </div>
+      <div class="household-progress-wrap">
+        <div class="household-progress-bar"><div class="household-progress-fill" id="householdProgressFill"></div></div>
+        <div class="household-progress-label" id="householdProgressLabel">0 / 5 done</div>
+      </div>
+      <ul class="household-list" id="householdList"></ul>
+      <div class="household-actions">
+        <button class="primary-btn" id="household-back">← Back to activities</button>
+        <button class="primary-btn household-submit-btn" id="household-submit" type="button">Submit &amp; Earn ★</button>
+        <button class="primary-btn household-reset-btn" id="household-reset" type="button">Reset today (test)</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal-backdrop" id="modal">
+    <div class="modal tiny-modal">
+      <div class="tiny-modal-emoji" id="modal-emoji">✨</div>
+      <h3 id="modal-title">Hi!</h3>
+      <p id="modal-body">Something fun goes here.</p>
+      <div class="tiny-modal-meta" id="modal-meta"></div>
+      <div class="tiny-modal-actions">
+        <button class="primary-btn" id="modal-next" style="display:none;">Show me another 🔁</button>
+        <button class="close" id="modal-close">Got it! ✨</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../auth.js?v=11"></script>
+  <script src="../themes.js?v=1"></script>
+  <script src="../approval.js?v=5"></script>
+  <script src="../mystery-box.js?v=5"></script>
+  <script src="tiny-bank.js?v=4"></script>
+  <script src="household-bank.js?v=4"></script>
+  <script>
+    const _user = LEW.requireAuth({ loginUrl: '../login.html' });
+    if (_user) {
+      const p = _user.profile || {};
+      document.getElementById('userChip').style.display = '';
+      document.getElementById('signoutBtn').style.display = '';
+      document.getElementById('userName').textContent = p.name || 'Explorer';
+      document.getElementById('userMeta').textContent = `Age ${p.age}`;
+      const av = document.getElementById('userAvatar');
+      if (_user.picture) av.innerHTML = `<img src="${_user.picture}" alt="" />`;
+      else av.textContent = (p.name || 'E').trim().charAt(0).toUpperCase();
+      document.getElementById('signoutBtn').addEventListener('click', () => {
+        LEW.signOut(); window.location.replace('../login.html');
+      });
+      if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+    }
+  </script>
+  <script src="../script.js?v=3"></script>
+  <script>
+    const modal = document.getElementById('modal');
+    const mtitle = document.getElementById('modal-title');
+    const mbody = document.getElementById('modal-body');
+    const memoji = document.getElementById('modal-emoji');
+    const mmeta = document.getElementById('modal-meta');
+    const mnext = document.getElementById('modal-next');
+    document.getElementById('modal-close').addEventListener('click', () => modal.classList.remove('open'));
+
+    const TB = window.LEW && window.LEW.TinyBank;
+    const POOL = TB ? TB.POOL_SIZE : 5000;
+
+    const TOPIC_LABEL = {
+      water:   'Water Reminder',
+      bedtime: 'Bedtime Mode',
+      mindful: 'Breathe & Relax'
+    };
+
+    let currentTopic = null;
+
+    function showItem(topic) {
+      currentTopic = topic;
+      if (!TB) return;
+      const item = TB.pick(topic);
+      if (!item) return;
+      memoji.textContent = item.e || '✨';
+      mtitle.textContent = item.t || 'Tiny tip';
+      mbody.textContent = item.b || '';
+      const seen = TB.totalSeen(topic);
+      mmeta.textContent = `${TOPIC_LABEL[topic]} · ${seen.toLocaleString()}/${POOL.toLocaleString()} discovered`;
+      mnext.style.display = '';
+      modal.classList.add('open');
+    }
+
+    function showRewards() {
+      currentTopic = null;
+      const stars = (LEW.getStars && LEW.getStars()) || 0;
+      const gifts = (LEW.getGifts && LEW.getGifts()) || [];
+      const hhStars = (LEW.getHouseholdStars && LEW.getHouseholdStars()) || 0;
+      const hhStyle = (LEW.getHouseholdStarStyle && LEW.getHouseholdStarStyle()) || null;
+      const hhLabel = hhStyle ? hhStyle.label.toLowerCase() : 'household star';
+      memoji.textContent = '🏆';
+      mtitle.textContent = 'Your Rewards';
+      const parts = [];
+      if (stars) parts.push(`${stars} ⭐ ${stars === 1 ? 'star' : 'stars'}`);
+      if (hhStars) parts.push(`${hhStars} ${hhLabel}${hhStars === 1 ? '' : 's'}`);
+      if (gifts.length) parts.push(`${gifts.length} 🎁 ${gifts.length === 1 ? 'gift' : 'gifts'}`);
+      if (parts.length === 0) {
+        mbody.textContent = "No rewards yet — but every explorer starts somewhere! Try BrainQuest, World Wonders, or the Household missions to earn your first star.";
+      } else {
+        mbody.innerHTML = `You have <b>${parts.join('</b>, <b>')}</b>. Keep going — the next reward is coming!`;
+      }
+      mmeta.textContent = '';
+      mnext.style.display = 'none';
+      modal.classList.add('open');
+    }
+
+    mnext.addEventListener('click', () => { if (currentTopic) showItem(currentTopic); });
+
+    document.querySelectorAll('.tile').forEach(t => {
+      t.addEventListener('click', () => {
+        const k = t.dataset.tile;
+        if (k === 'rewards') showRewards();
+        else if (k === 'household') openHousehold();
+        else showItem(k);
+      });
+    });
+
+    // ---------------- Household ------------------
+    const householdView = document.getElementById('household-view');
+    const tilesEl = document.querySelector('.tiles');
+    const heroEl = document.querySelector('.sub-hero');
+    const householdList = document.getElementById('householdList');
+    const householdSub = document.getElementById('householdSub');
+    const householdProgressFill = document.getElementById('householdProgressFill');
+    const householdProgressLabel = document.getElementById('householdProgressLabel');
+
+    const HH = window.LEW && window.LEW.Household;
+
+    function openHousehold() {
+      if (!HH) return;
+      tilesEl.style.display = 'none';
+      heroEl.style.display = 'none';
+      householdView.style.display = '';
+      renderHousehold();
+    }
+    document.getElementById('household-back').addEventListener('click', () => {
+      householdView.style.display = 'none';
+      tilesEl.style.display = '';
+      heroEl.style.display = '';
+    });
+    document.getElementById('household-reset').addEventListener('click', () => {
+      if (HH && HH.resetToday) HH.resetToday();
+      if (LEW.resetHouseholdStars) LEW.resetHouseholdStars();
+      if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+      renderHousehold();
+    });
+    document.getElementById('household-submit').addEventListener('click', () => {
+      if (!HH) return;
+      const state = HH.getToday();
+      if (state.awarded) return;
+      if (state.completed !== state.total || state.total === 0) {
+        alert('Finish all 5 missions, then submit to earn a star!');
+        return;
+      }
+      if (typeof LEW.openPictureApproval !== 'function') return;
+      LEW.openPictureApproval({
+        decideTitle: 'Approve these missions?',
+        decideHint: 'All 5 household missions are done. Award a household star?',
+        deniedHint: 'A parent asked you to try again. Check the missions, then submit again!',
+        retryLabel: 'Retry',
+        approveLabel: 'Approve ★',
+        onApprove() {
+          awardHouseholdStarFlow();
+        }
+      });
+    });
+
+    (function resetHouseholdForTest() {
+      const TOKEN = "reset-2026-08-25-pm";
+      if (localStorage.getItem("lew_hh_test_reset") === TOKEN) return;
+      if (HH && HH.resetToday) HH.resetToday();
+      if (LEW.resetHouseholdStars) LEW.resetHouseholdStars();
+      localStorage.setItem("lew_hh_test_reset", TOKEN);
+      if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+    })();
+
+    function renderHousehold() {
+      if (!HH) return;
+      const state = HH.getToday();
+      householdList.innerHTML = '';
+      state.items.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'household-item' + (item.done ? ' done' : '');
+        li.innerHTML = `
+          <button class="hh-check" aria-label="Toggle done">${item.done ? '✅' : ''}</button>
+          <div class="hh-body">
+            <div class="hh-title"><span class="hh-emoji">${item.e}</span>${escapeHtml(item.t)}</div>
+            ${item.b ? `<div class="hh-note">${escapeHtml(item.b)}</div>` : ''}
+          </div>
+        `;
+        li.querySelector('.hh-check').addEventListener('click', () => {
+          const newState = HH.toggleDone(item.index, !item.done);
+          if (newState) renderHousehold();
+        });
+        householdList.appendChild(li);
+      });
+
+      const pct = state.total ? (state.completed / state.total) * 100 : 0;
+      householdProgressFill.style.width = pct + '%';
+      householdProgressLabel.textContent = `${state.completed} / ${state.total} done`;
+      if (state.completed === state.total && state.total > 0) {
+        householdSub.textContent = state.awarded
+          ? "All done! You earned today's ★. See you tomorrow!"
+          : "All 5 done! Submit to earn a ★.";
+      } else {
+        const remaining = state.total - state.completed;
+        householdSub.textContent = `Finish ${remaining} more, then submit to earn a ★`;
+      }
+      const submitBtn = document.getElementById('household-submit');
+      if (submitBtn) {
+        submitBtn.disabled = !!state.awarded;
+        submitBtn.textContent = state.awarded ? '★ Earned today' : 'Submit & Earn ★';
+      }
+      const hhStars = (LEW.getHouseholdStars && LEW.getHouseholdStars()) || 0;
+      const hhPerBox = (LEW.starsPerHouseholdMysteryBox && LEW.starsPerHouseholdMysteryBox()) || 10;
+      const remainder = hhStars % hhPerBox;
+      const toBox = remainder === 0 ? hhPerBox : hhPerBox - remainder;
+      householdProgressLabel.textContent = `${state.completed} / ${state.total} done · ${toBox} more household ${toBox === 1 ? "star" : "stars"} until a 🎁 mystery box`;
+    }
+
+    function awardHouseholdStarFlow() {
+      const already = HH.getToday();
+      if (already && already.awarded) return;
+      HH.markAwarded();
+      HH.bumpStarDays();
+      const total = (LEW.awardHouseholdStar && LEW.awardHouseholdStar({
+        label: `Household missions on ${HH.todayKey()}`,
+        date: HH.todayKey()
+      })) || 0;
+      if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+      const boxTriggered = (typeof LEW.maybeAwardHouseholdMysteryBox === 'function')
+        ? LEW.maybeAwardHouseholdMysteryBox(total) : false;
+      if (!boxTriggered) setTimeout(() => celebrateHouseholdStar(total), 250);
+      renderHousehold();
+    }
+
+    function celebrateHouseholdStar(total) {
+      const style = (LEW.getHouseholdStarStyle && LEW.getHouseholdStarStyle()) || {
+        color: "#8b5cf6", gradient: "linear-gradient(135deg,#8b5cf6,#7c3aed)", label: "Purple star"
+      };
+      const overlay = document.createElement('div');
+      overlay.className = 'star-award-overlay hh-award-overlay';
+      overlay.innerHTML = `
+        <div class="star-award-card">
+          <div class="hh-award-star" style="color:${style.color}">★</div>
+          <div class="star-award-title">${style.label} earned!</div>
+          <div class="star-award-sub">Total household stars: <b>${total}</b></div>
+          <button class="star-award-btn" style="background:${style.gradient}">Awesome!</button>
+        </div>`;
+      document.body.appendChild(overlay);
+      requestAnimationFrame(() => overlay.classList.add('show'));
+      const close = () => {
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.remove(), 350);
+      };
+      overlay.querySelector('.star-award-btn').addEventListener('click', close);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+      if (typeof window.launchConfetti === 'function') window.launchConfetti();
+    }
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+  </script>
+</body>
+</html>

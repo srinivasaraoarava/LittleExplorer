@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Little Explorer World — 4 Fun Apps for Curious Kids</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=11" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- Floating decorative blobs -->
+  <div class="bg-blob blob1"></div>
+  <div class="bg-blob blob2"></div>
+  <div class="bg-blob blob3"></div>
+  <div class="bg-blob blob4"></div>
+
+  <!-- Floating emoji sprites -->
+  <div class="float-sprites" aria-hidden="true">
+    <span class="sprite" style="--x:8%;  --d:14s; --delay:-2s;">🌟</span>
+    <span class="sprite" style="--x:22%; --d:18s; --delay:-6s;">🎈</span>
+    <span class="sprite" style="--x:38%; --d:22s; --delay:-1s;">🦋</span>
+    <span class="sprite" style="--x:55%; --d:16s; --delay:-9s;">🌈</span>
+    <span class="sprite" style="--x:72%; --d:20s; --delay:-4s;">🚀</span>
+    <span class="sprite" style="--x:88%; --d:24s; --delay:-11s;">🐢</span>
+    <span class="sprite" style="--x:15%; --d:26s; --delay:-13s;">✨</span>
+    <span class="sprite" style="--x:65%; --d:28s; --delay:-7s;">🪐</span>
+  </div>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">🌍</span>
+      <span class="brand-name">Little Explorer</span>
+    </div>
+    <div class="topbar-right">
+      <button type="button" class="star-badge" id="starBadge" title="View quiz rewards" style="display:none;">
+        <span class="reward-part stars"><span class="star-ico">⭐</span><span id="starCount">0</span></span>
+        <span class="reward-part gifts" id="giftPart" style="display:none;"><span class="gift-ico">🎁</span><span id="giftCount">0</span></span>
+      </button>
+      <button type="button" class="star-badge household-badge" id="householdBadge" title="View household rewards" style="display:none;">
+        <span class="reward-part hh-stars"><span class="hh-ico" id="householdStarIco">★</span><span id="householdStarCount">0</span></span>
+        <span class="reward-part hh-gifts" id="householdGiftPart"><span class="gift-ico">🎁</span><span id="householdGiftCount">0</span></span>
+      </button>
+      <div class="profile-menu" id="profileMenu" style="display:none;">
+        <button type="button" class="user-chip profile-trigger" id="userChip" aria-haspopup="true" aria-expanded="false">
+          <span class="avatar" id="userAvatar">🙂</span>
+          <span class="who">
+            <span id="userName">Explorer</span>
+            <small id="userMeta">Age —</small>
+          </span>
+          <span class="user-chip-caret" aria-hidden="true">▼</span>
+        </button>
+        <div class="profile-dropdown" id="profileDropdown">
+          <button type="button" id="themeMenuBtn">🎨 Themes</button>
+          <button type="button" id="approvalMenuBtn">🔐 Create approval code</button>
+          <button type="button" class="pd-signout" id="signoutBtn">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main class="hero">
+    <div class="logo-badge" aria-hidden="true">
+      <div class="logo-inner">🚀</div>
+      <div class="logo-ring"></div>
+    </div>
+
+    <h1 class="title">
+      <span id="heroGreeting">Little Explorer</span> <span class="gradient-text">World!</span>
+    </h1>
+    <p class="subtitle" id="heroSub">Four magical worlds, endless discoveries — pick your adventure below! ✨</p>
+
+    <div class="chips">
+      <span class="chip">🎓 AP & CBSE Aligned</span>
+      <span class="chip">🧩 4 Fun Apps</span>
+      <span class="chip">🎂 Ages 3–15</span>
+      <span class="chip">💯 100% Free</span>
+    </div>
+
+    <!-- App cards -->
+    <section class="cards">
+
+      <!-- Card 1: Tiny Genius -->
+      <article class="card card-green" data-app="tiny-genius">
+        <div class="card-badge">⭐ TOP PICK</div>
+        <div class="card-head">
+          <span class="card-num">1</span>
+          <span class="card-tag">🌱 SMART COACH</span>
+        </div>
+        <div class="card-icon">🦉</div>
+        <h2 class="card-title">Tiny Genius</h2>
+        <p class="card-sub">Smart Learning Coach</p>
+        <p class="card-desc">A gentle, nature-themed smart coach for little learners. Maths quizzes, water reminders, bedtime mode, and much more!</p>
+        <div class="pills">
+          <span class="pill">🧮 Maths Quiz</span>
+          <span class="pill">💧 Water Reminders</span>
+          <span class="pill">🌙 Bedtime Mode</span>
+          <span class="pill">🌿 Nature Theme</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-num">SMART</div><div class="stat-label">COACH</div></div>
+          <div class="stat"><div class="stat-num">3+</div><div class="stat-label">AGES</div></div>
+          <div class="stat"><div class="stat-num">🏆</div><div class="stat-label">REWARDS</div></div>
+        </div>
+        <a class="open-btn open-green" href="apps/tiny-genius.html">Open Tiny Genius →</a>
+      </article>
+
+      <!-- Card 2: PlayVerse -->
+      <article class="card card-orange" data-app="playverse">
+        <div class="card-badge badge-new">✨ NEW</div>
+        <div class="card-head">
+          <span class="card-num">2</span>
+          <span class="card-tag">🎮 FUN ZONE</span>
+        </div>
+        <div class="card-icon">🎨</div>
+        <h2 class="card-title">PlayVerse</h2>
+        <p class="card-sub">Play, Create & Explore</p>
+        <p class="card-desc">Games, art, music, science experiments and more! A fun-filled activity zone where kids play, create, and explore at their own pace.</p>
+        <div class="pills">
+          <span class="pill">🎯 Games</span>
+          <span class="pill">🖌️ Art Studio</span>
+          <span class="pill">🎵 Music</span>
+          <span class="pill">🧪 Science</span>
+          <span class="pill">🎁 Rewards</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-num">6</div><div class="stat-label">ZONES</div></div>
+          <div class="stat"><div class="stat-num">3</div><div class="stat-label">LEVELS</div></div>
+          <div class="stat"><div class="stat-num">∞</div><div class="stat-label">FUN!</div></div>
+        </div>
+        <a class="open-btn open-orange" href="apps/playverse.html">Open PlayVerse →</a>
+      </article>
+
+      <!-- Card 3: BrainQuest -->
+      <article class="card card-purple" data-app="brainquest">
+        <div class="card-badge">🎓 LEARNING</div>
+        <div class="card-head">
+          <span class="card-num">3</span>
+          <span class="card-tag">📚 SYLLABUS</span>
+        </div>
+        <div class="card-icon">🧠</div>
+        <h2 class="card-title">BrainQuest</h2>
+        <p class="card-sub">Kids Learning Hub</p>
+        <p class="card-desc">Full AP & CBSE syllabus — Maths, Science, English & Mind & Me. Simple explanations, examples and quick quizzes for every topic!</p>
+        <div class="pills">
+          <span class="pill">📐 Maths</span>
+          <span class="pill">🔬 Science</span>
+          <span class="pill">📖 English</span>
+          <span class="pill">💭 Mind & Me</span>
+          <span class="pill">❓ Quizzes</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-num">200+</div><div class="stat-label">TOPICS</div></div>
+          <div class="stat"><div class="stat-num">4</div><div class="stat-label">SUBJECTS</div></div>
+          <div class="stat"><div class="stat-num">KG–7</div><div class="stat-label">CLASSES</div></div>
+        </div>
+        <a class="open-btn open-purple" href="apps/brainquest.html">Open BrainQuest →</a>
+      </article>
+
+      <!-- Card 4: World Wonders -->
+      <article class="card card-blue" data-app="world-wonders">
+        <div class="card-badge badge-new">🌟 NEW</div>
+        <div class="card-head">
+          <span class="card-num">4</span>
+          <span class="card-tag">🌍 GENERAL KNOWLEDGE</span>
+        </div>
+        <div class="card-icon">🌎</div>
+        <h2 class="card-title">World Wonders</h2>
+        <p class="card-sub">Learn &amp; Explore Everything</p>
+        <p class="card-desc">Animals, Nature, Space, Cultures, History, Sports, Festivals & more. Made for ages 4–15!</p>
+        <div class="pills">
+          <span class="pill">🐘 Animals</span>
+          <span class="pill">🪐 Space</span>
+          <span class="pill">🎭 Cultures</span>
+          <span class="pill">🌿 Nature Facts</span>
+          <span class="pill">⚽ Sports</span>
+          <span class="pill">🎉 Festivals</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-num">15</div><div class="stat-label">TOPICS</div></div>
+          <div class="stat"><div class="stat-num">4–15</div><div class="stat-label">AGES</div></div>
+          <div class="stat"><div class="stat-num">🏅</div><div class="stat-label">QUIZ</div></div>
+        </div>
+        <a class="open-btn open-blue" href="apps/world-wonders.html">Open World Wonders →</a>
+      </article>
+
+    </section>
+
+    <footer class="foot">
+      Made with <span class="heart">♥</span> for young explorers everywhere 🌱
+    </footer>
+  </main>
+
+  <!-- Welcome toast (shown once, right after sign-up) -->
+  <div class="welcome-toast" id="welcomeToast" style="display:none;">
+    <div class="wt-emoji">🎉</div>
+    <div class="wt-body">
+      <div class="wt-title" id="wtTitle">Welcome!</div>
+      <div class="wt-sub" id="wtSub">You're all set. Pick a world and start exploring!</div>
+    </div>
+    <button class="wt-close" id="wtClose" aria-label="Dismiss">✕</button>
+  </div>
+
+  <!-- Mascot -->
+  <button class="mascot" id="mascot" title="Click me!">
+    <span class="mascot-emoji">🐣</span>
+    <span class="mascot-bubble">You are a star! ⭐</span>
+  </button>
+
+  <script src="auth.js?v=11"></script>
+  <script src="mystery-box.js?v=5"></script>
+  <script src="approval.js?v=5"></script>
+  <script src="themes.js?v=1"></script>
+  <script>
+    const user = LEW.requireAuth({ loginUrl: 'login.html' });
+    if (user) {
+      const p = user.profile || {};
+      const menu = document.getElementById('profileMenu');
+      const chip = document.getElementById('userChip');
+      const btn = document.getElementById('signoutBtn');
+      const nameEl = document.getElementById('userName');
+      const metaEl = document.getElementById('userMeta');
+      const avatarEl = document.getElementById('userAvatar');
+      const greet = document.getElementById('heroGreeting');
+      const heroSub = document.getElementById('heroSub');
+      const approvalMenuBtn = document.getElementById('approvalMenuBtn');
+      const themeMenuBtn = document.getElementById('themeMenuBtn');
+
+      menu.style.display = '';
+      if (typeof LEW.refreshRewardBadge === 'function') LEW.refreshRewardBadge();
+      nameEl.textContent = p.name || 'Explorer';
+      const genderLabel = p.gender === 'boy' ? 'Boy' : p.gender === 'girl' ? 'Girl' : 'Explorer';
+      metaEl.textContent = `Age ${p.age} • ${genderLabel}`;
+      if (user.picture) {
+        avatarEl.innerHTML = `<img src="${user.picture}" alt="" />`;
+      } else {
+        avatarEl.textContent = (p.name || 'E').trim().charAt(0).toUpperCase();
+      }
+      greet.textContent = `${(p.name || 'Explorer').trim()}'s`;
+      heroSub.textContent = `Welcome back! Pick a world and let's explore. ✨`;
+
+      function syncApprovalLabel() {
+        approvalMenuBtn.textContent = (LEW.hasApprovalCode && LEW.hasApprovalCode())
+          ? '🔐 Change approval code'
+          : '🔐 Create approval code';
+      }
+      syncApprovalLabel();
+      chip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        syncApprovalLabel();
+        const open = menu.classList.toggle('open');
+        chip.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', () => {
+        menu.classList.remove('open');
+        chip.setAttribute('aria-expanded', 'false');
+      });
+      approvalMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menu.classList.remove('open');
+        if (typeof LEW.openApprovalSettings === 'function') LEW.openApprovalSettings();
+      });
+      themeMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menu.classList.remove('open');
+        if (typeof LEW.openThemePicker === 'function') LEW.openThemePicker();
+      });
+      document.getElementById('profileDropdown').addEventListener('click', (e) => e.stopPropagation());
+
+      btn.addEventListener('click', () => {
+        LEW.signOut();
+        window.location.replace('login.html');
+      });
+
+      // Welcome toast — only right after a fresh signup
+      const flag = sessionStorage.getItem('lew_welcome_flag');
+      const email = sessionStorage.getItem('lew_welcome_email');
+      if (flag) {
+        sessionStorage.removeItem('lew_welcome_flag');
+        sessionStorage.removeItem('lew_welcome_email');
+        const toast = document.getElementById('welcomeToast');
+        document.getElementById('wtTitle').textContent = `Welcome, ${p.name}! 🚀`;
+        document.getElementById('wtSub').innerHTML = flag === 'sent'
+          ? `We've sent a welcome email to <b>${email}</b>. Check your inbox (and spam folder)! 💌`
+          : `Your account is ready. Pick a world below and let's explore! ✨`;
+        toast.style.display = '';
+        requestAnimationFrame(() => toast.classList.add('show'));
+        const dismiss = () => {
+          toast.classList.remove('show');
+          setTimeout(() => (toast.style.display = 'none'), 400);
+        };
+        document.getElementById('wtClose').addEventListener('click', dismiss);
+        setTimeout(dismiss, 8000);
+      }
+    }
+  </script>
+  <script src="script.js?v=3"></script>
+</body>
+</html>
